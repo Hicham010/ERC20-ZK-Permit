@@ -82,7 +82,7 @@ function App() {
           margin: "25px 0",
         }}
       >
-        <ConnectKitButton />
+        <ConnectKitButton theme="soft" />
       </div>
 
       <>

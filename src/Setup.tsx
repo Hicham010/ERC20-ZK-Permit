@@ -1,10 +1,12 @@
 import { Button, Input, Spin, notification } from "antd";
 import { useState } from "react";
 import {
+  Address,
   useAccount,
-  useContractRead,
+  useContractReads,
   useContractWrite,
   usePrepareContractWrite,
+  useWaitForTransaction,
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { BigNumber } from "ethers";
@@ -16,21 +18,29 @@ function Setup() {
   const [password, setPassword] = useState<string>("");
   const { address = "0x0", isConnected } = useAccount();
 
-  const { data: balance, isLoading: isLoadingBalance } = useContractRead({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+  const ERC20ZkPermitContract = {
+    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e" as Address,
     abi: ERC20ZKArtifact.abi,
-    functionName: "balanceOf",
-    args: [address],
-    watch: true,
-    enabled: isConnected,
-  });
+  };
 
-  const { data: userHash, isLoading: isLoadingUserHash } = useContractRead({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
-    abi: ERC20ZKArtifact.abi,
-    functionName: "userHash",
-    args: [address],
-    watch: true,
+  const {
+    data: balanceAndUserHash,
+    isLoading: isLoadingBalanceAndUserHash,
+    refetch: refetchBalanceAndHash,
+    isRefetching: isRefetchingBalanceAndHash,
+  } = useContractReads({
+    contracts: [
+      {
+        ...ERC20ZkPermitContract,
+        functionName: "balanceOf",
+        args: [address],
+      },
+      {
+        ...ERC20ZkPermitContract,
+        functionName: "userHash",
+        args: [address],
+      },
+    ],
     enabled: isConnected,
   });
 
@@ -55,24 +65,44 @@ function Setup() {
     args: [address, BigNumber.from("1000")],
     enabled: isConnected,
   });
-  const { isLoading: isMintingTokens, write: mint } = useContractWrite({
+  const {
+    data: mintingReceipt,
+    isLoading: isMintingTokens,
+    write: mint,
+  } = useContractWrite({
     ...config,
     onSuccess: ({ hash }) => {
       openNotificationWithIcon("Mint Successful", hash);
     },
   });
 
-  const { isLoading: isSettingUserHash, write: setUserHash } = useContractWrite(
-    {
-      address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
-      abi: ERC20ZKArtifact.abi,
-      functionName: "setUserHash",
-      mode: "recklesslyUnprepared",
-      onSuccess: ({ hash }) => {
-        openNotificationWithIcon("Setting User Hash Successful", hash);
-      },
-    }
-  );
+  const {
+    data: userHashReceipt,
+    isLoading: isSettingUserHash,
+    write: setUserHash,
+  } = useContractWrite({
+    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    abi: ERC20ZKArtifact.abi,
+    functionName: "setUserHash",
+    mode: "recklesslyUnprepared",
+    onSuccess: ({ hash }) => {
+      openNotificationWithIcon("Setting User Hash Successful", hash);
+    },
+  });
+
+  const { isLoading: isWaitingOnTxMint } = useWaitForTransaction({
+    hash: mintingReceipt?.hash,
+    onSuccess() {
+      refetchBalanceAndHash();
+    },
+  });
+
+  const { isLoading: isWaitingOnTxUserHash } = useWaitForTransaction({
+    hash: userHashReceipt?.hash,
+    onSuccess() {
+      refetchBalanceAndHash();
+    },
+  });
 
   const handleUserHash = async () => {
     if (!address) return;
@@ -98,10 +128,19 @@ function Setup() {
     }
   };
 
+  if (!balanceAndUserHash) return <Spin spinning={true} />;
+
   return (
     <>
       {contextHolder}
-      <p>Current User Hash: {userHash?.toString()}</p>
+      <p
+        style={{
+          opacity:
+            isWaitingOnTxUserHash || isRefetchingBalanceAndHash ? 0.25 : 1,
+        }}
+      >
+        Current User Hash: {balanceAndUserHash[1].toString()}
+      </p>
       <div style={{ display: "flex" }}>
         <Input
           maxLength={30}
@@ -118,7 +157,7 @@ function Setup() {
         </Button>
       </div>
       <br />
-      {!isLoadingBalance && !isLoadingUserHash ? (
+      {!isLoadingBalanceAndUserHash && (
         <div
           style={{
             display: "flex",
@@ -126,11 +165,16 @@ function Setup() {
             alignItems: "baseline",
           }}
         >
-          <p>
+          <p
+            style={{
+              opacity:
+                isWaitingOnTxMint || isRefetchingBalanceAndHash ? 0.25 : 1,
+            }}
+          >
             Current Balance:{" "}
-            {balance?.eq(0)
+            {balanceAndUserHash[0].eq(0)
               ? 0
-              : balance?.div("1000000000000000000").toString()}
+              : balanceAndUserHash[0].div("1000000000000000000").toString()}
           </p>
           <Button
             loading={isMintingTokens}
@@ -140,8 +184,6 @@ function Setup() {
             Mint 10 000 Tokens
           </Button>
         </div>
-      ) : (
-        <Spin spinning={true} />
       )}
     </>
   );
