@@ -57,9 +57,11 @@ export default function Confirm({ proof, compoundHash, formValues }) {
     ],
     enabled: isConnected,
     onError(err) {
-      if (!("reason" in err)) return;
-
-      message.error("Something went wrong: " + err.reason);
+      if ("reason" in err) {
+        message.error("Something went wrong: " + err.reason);
+      } else {
+        message.error("Something went wrong: " + err.message);
+      }
     },
   });
   const { data, isLoading, write } = useContractWrite({
@@ -72,17 +74,21 @@ export default function Confirm({ proof, compoundHash, formValues }) {
   const { isLoading: isWaitingOnTx } = useWaitForTransaction({
     hash: data?.hash,
     onSuccess() {
+      message.success("The transfer is complete");
       refetchBalance();
+    },
+    onError() {
+      message.error("The transfer failed");
     },
   });
 
   const [api, contextHolder] = notification.useNotification();
   const openNotificationWithIcon = (transactionHash: string) => {
-    api["success"]({
-      message: "Transfer Successful",
+    api["info"]({
+      message: "Transfer Pending",
       description: (
         <>
-          <p>{formValues.value} tokens transferred.</p>
+          <p>{formValues.value} tokens transferring</p>
           <p>From: {formValues.owner}</p>
           <p>to: {formValues.receiver}</p>
           <a
