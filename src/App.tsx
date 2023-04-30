@@ -80,7 +80,7 @@ function App() {
         style={{
           display: "flex",
           justifyContent: "end",
-          margin: "25px 0",
+          marginBottom: "30px",
         }}
       >
         <ConnectKitButton theme="soft" />

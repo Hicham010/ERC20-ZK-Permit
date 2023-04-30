@@ -6,7 +6,7 @@ import {
   useWaitForTransaction,
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { Button, Spin, message, notification } from "antd";
+import { Button, Descriptions, Spin, message, notification } from "antd";
 import { BigNumber } from "ethers";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 
@@ -99,44 +99,62 @@ export default function Confirm({ proof, compoundHash, formValues }) {
   return (
     <div>
       {contextHolder}
-      {/* TODO: Use antd Description Component */}
-      {balance ? (
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <p
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <Descriptions
+          title="Transfer Request"
+          layout="vertical"
+          column={2}
+          style={{ width: "75%" }}
+        >
+          <Descriptions.Item label="Owner Address">
+            {formValues.owner}
+          </Descriptions.Item>
+          <Descriptions.Item
+            label="Owner Balance"
             style={{
               opacity: isWaitingOnTx || isRefetchingBalance ? 0.25 : 1,
               margin: "5px",
             }}
           >
-            Current Owner Balance:{" "}
-            {balance[0].eq(0)
-              ? 0
-              : balance[0].div("1000000000000000000").toString()}
-          </p>
-          <p
+            {balance ? (
+              balance[0].eq(0) ? (
+                0
+              ) : (
+                balance[0].div("1000000000000000000").toString()
+              )
+            ) : (
+              <Spin />
+            )}
+          </Descriptions.Item>
+          <Descriptions.Item label="Receiver Address">
+            {formValues.receiver}
+          </Descriptions.Item>
+          <Descriptions.Item
+            label="Receiver Balance"
             style={{
               opacity: isWaitingOnTx || isRefetchingBalance ? 0.25 : 1,
               margin: "5px",
             }}
           >
-            Current Receiver Balance:{" "}
-            {balance[1].eq(0)
-              ? 0
-              : balance[1].div("1000000000000000000").toString()}
-          </p>
-        </div>
-      ) : (
-        <Spin spinning={true} />
-      )}
-      <p>Transfer tokens {formValues.value}</p>
-      <p>Owner: {formValues.owner}</p>
-      <p>Receiver: {formValues.receiver}</p>
+            {balance ? (
+              balance[1].eq(0) ? (
+                0
+              ) : (
+                balance[1].div("1000000000000000000").toString()
+              )
+            ) : (
+              <Spin />
+            )}
+          </Descriptions.Item>
+        </Descriptions>
+      </div>
       <Button
         loading={isLoading || isPreparingZKTransfer}
         disabled={isError}
         onClick={write}
+        type="primary"
       >
-        Transfer Tokens
+        Transfer {formValues.value} Token(s)
       </Button>
       <br />
       <p>*If you like you can now switch to another wallet to use the permit</p>
