@@ -1,5 +1,4 @@
 import {
-  Address,
   useAccount,
   useContractReads,
   useContractWrite,
@@ -9,17 +8,15 @@ import {
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Button, Spin, message, notification } from "antd";
 import { BigNumber } from "ethers";
+import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 
 export default function Confirm({ proof, compoundHash, formValues }) {
-  const MAX_FIELD_VALUE =
-    21888242871839275222246405745257275088548364400416034343698204186575808495617n;
-
   const ERC20ZkPermitContract = {
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e" as Address,
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
   };
 
-  const { address = "0x0", isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const {
     data: balance,
     refetch: refetchBalance,
@@ -29,7 +26,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
       {
         ...ERC20ZkPermitContract,
         functionName: "balanceOf",
-        args: [address],
+        args: [formValues.owner],
       },
       {
         ...ERC20ZkPermitContract,
@@ -45,7 +42,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
     isError,
     isLoading: isPreparingZKTransfer,
   } = usePrepareContractWrite({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "zkTransferFrom",
     args: [
@@ -102,6 +99,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
   return (
     <div>
       {contextHolder}
+      {/* TODO: Use antd Description Component */}
       {balance ? (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <p

@@ -9,6 +9,7 @@ import Setup from "./Setup";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { constants } from "ethers";
 import Confirm from "./Confirm";
+import { ERC20ZKPPermitAddress } from "./constants";
 
 function App() {
   const [current, setCurrent] = useState(0);
@@ -19,7 +20,7 @@ function App() {
 
   const { address = "0x0", isConnected } = useAccount();
   const { data: balance } = useContractRead({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "balanceOf",
     args: [address],
@@ -27,7 +28,7 @@ function App() {
     enabled: isConnected,
   });
   const { data: userHash } = useContractRead({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "userHash",
     args: [address],

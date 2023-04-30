@@ -4,12 +4,13 @@ import { getCompoundPoseidonHash, getPermitZKProof } from "./utils/zokrates";
 import { BigNumber, utils } from "ethers";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Address, useAccount, useContractRead } from "wagmi";
+import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 
 function Permit({ setProof, setCompoundHash, setFormValues }) {
   const [loading, setLoading] = useState<boolean>(false);
   const { address = "0x0", isConnected } = useAccount();
   const { data: zknNonce } = useContractRead({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "zkNonce",
     args: [address],
@@ -18,7 +19,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
   });
 
   const { data: userHash } = useContractRead({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "userHash",
     args: [address],
@@ -27,16 +28,13 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
   });
 
   const { data: balance } = useContractRead({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "balanceOf",
     args: [address],
     watch: true,
     enabled: isConnected,
   });
-
-  const MAX_FIELD_VALUE =
-    21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
   async function onFinish(values: {
     password: string;
@@ -119,7 +117,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
       setProof(proof);
     } catch (err) {
       console.error(err);
-      message.error("Somehing went wrong generating the proof" + err);
+      message.error("Something went wrong generating the proof" + err);
     } finally {
       setLoading(false);
     }

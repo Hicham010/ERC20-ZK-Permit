@@ -1,0 +1,7 @@
+import { Address } from "wagmi";
+
+export const ERC20ZKPPermitAddress =
+  "0x33db6af053c189e07cc65e5317e7b449fb1bba7e" as Address;
+
+export const MAX_FIELD_VALUE =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;

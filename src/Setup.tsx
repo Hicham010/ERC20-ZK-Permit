@@ -1,7 +1,6 @@
 import { Button, Input, Spin, notification } from "antd";
 import { useState } from "react";
 import {
-  Address,
   useAccount,
   useContractReads,
   useContractWrite,
@@ -11,6 +10,7 @@ import {
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { BigNumber } from "ethers";
 import { getUserPoseidonHash } from "./utils/zokrates";
+import { ERC20ZKPPermitAddress } from "./constants";
 
 function Setup() {
   const [api, contextHolder] = notification.useNotification();
@@ -19,13 +19,12 @@ function Setup() {
   const { address = "0x0", isConnected } = useAccount();
 
   const ERC20ZkPermitContract = {
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e" as Address,
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
   };
 
   const {
     data: balanceAndUserHash,
-    isLoading: isLoadingBalanceAndUserHash,
     refetch: refetchBalanceAndHash,
     isRefetching: isRefetchingBalanceAndHash,
   } = useContractReads({
@@ -59,7 +58,7 @@ function Setup() {
   };
 
   const { config } = usePrepareContractWrite({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "mint",
     args: [address, BigNumber.from("1000")],
@@ -81,7 +80,7 @@ function Setup() {
     isLoading: isSettingUserHash,
     write: setUserHash,
   } = useContractWrite({
-    address: "0x33db6af053c189e07cc65e5317e7b449fb1bba7e",
+    address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "setUserHash",
     mode: "recklesslyUnprepared",
@@ -157,34 +156,31 @@ function Setup() {
         </Button>
       </div>
       <br />
-      {!isLoadingBalanceAndUserHash && (
-        <div
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "baseline",
+        }}
+      >
+        <p
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "baseline",
+            opacity: isWaitingOnTxMint || isRefetchingBalanceAndHash ? 0.25 : 1,
           }}
         >
-          <p
-            style={{
-              opacity:
-                isWaitingOnTxMint || isRefetchingBalanceAndHash ? 0.25 : 1,
-            }}
-          >
-            Current Balance:{" "}
-            {balanceAndUserHash[0].eq(0)
-              ? 0
-              : balanceAndUserHash[0].div("1000000000000000000").toString()}
-          </p>
-          <Button
-            loading={isMintingTokens}
-            style={{ marginLeft: "50px" }}
-            onClick={mint}
-          >
-            Mint 10 000 Tokens
-          </Button>
-        </div>
-      )}
+          Current Balance:{" "}
+          {balanceAndUserHash[0].eq(0)
+            ? 0
+            : balanceAndUserHash[0].div("1000000000000000000").toString()}
+        </p>
+        <Button
+          loading={isMintingTokens}
+          style={{ marginLeft: "50px" }}
+          onClick={mint}
+        >
+          Mint 10 000 Tokens
+        </Button>
+      </div>
     </>
   );
 }
