@@ -1,7 +1,0 @@
-import "hashes/poseidon/poseidon" as poseidon;
-
-def main(private field[2] password, field owner) -> field {
-    field userHashed = poseidon([...password, owner]);
-
-    return userHashed;
-}

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button, Form, Input, InputNumber, message } from "antd";
-import { getCompoundPoseidonHash, getPermitZKProof } from "./utils/zokrates";
+import { getPermitZKProof } from "./utils/zokrates";
 import { BigNumber, utils } from "ethers";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Address, useAccount, useContractRead } from "wagmi";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
+import { buildPoseidon } from "circomlibjs";
 
 function Permit({ setProof, setCompoundHash, setFormValues }) {
   const [loading, setLoading] = useState<boolean>(false);
@@ -18,7 +19,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
     enabled: isConnected,
   });
 
-  const { data: userHash } = useContractRead({
+  const { data: onChainUserHash } = useContractRead({
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
     functionName: "userHash",
@@ -70,42 +71,39 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
 
       console.log("Initial inputs: ", input);
 
-      const { inputs: userAndCompoundHash } = await getCompoundPoseidonHash(
-        input
+      const poseidon = await buildPoseidon();
+
+      const userHash = poseidon.F.toString(
+        poseidon([passwordNumber, "0", address])
+      );
+      const transferHash = poseidon.F.toString(
+        poseidon([receiverAddressNumber, valueNumber, deadline, nonce])
+      );
+      const compoundHash = poseidon.F.toString(
+        poseidon([userHash, transferHash])
       );
 
-      const inputWithHashes: [
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        string
-      ] = [
-        ...input,
-        BigNumber.from(
-          userAndCompoundHash[userAndCompoundHash.length - 2]
-        ).toString(),
-        BigNumber.from(
-          userAndCompoundHash[userAndCompoundHash.length - 1]
-        ).toString(),
-      ];
+      const userHashHex = BigNumber.from(
+        userHash
+      ).toHexString() as `0x${string}`;
 
-      const generatedUserHash =
-        userAndCompoundHash[userAndCompoundHash.length - 2];
+      const compoundHashHex = BigNumber.from(
+        compoundHash
+      ).toHexString() as `0x${string}`;
 
-      if (generatedUserHash === userHash) {
+      console.log([...input, userHash, compoundHash]);
+
+      if (onChainUserHash === userHashHex) {
         message.success("The supplied password is correct");
       } else {
         message.error("The supplied password is wrong");
       }
 
-      const { inputs, proof, isVerified } = await getPermitZKProof(
-        inputWithHashes
-      );
+      const { proof, isVerified } = await getPermitZKProof([
+        ...input,
+        userHash,
+        compoundHash,
+      ]);
 
       if (isVerified) {
         message.success("The proof is valid");
@@ -113,7 +111,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
         message.error("The proof is invalid");
       }
 
-      setCompoundHash(inputs[inputs.length - 1]);
+      setCompoundHash(compoundHashHex);
       setProof(proof);
     } catch (err) {
       console.error(err);

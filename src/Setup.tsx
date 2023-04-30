@@ -9,8 +9,8 @@ import {
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { BigNumber } from "ethers";
-import { getUserPoseidonHash } from "./utils/zokrates";
 import { ERC20ZKPPermitAddress } from "./constants";
+import { buildPoseidon } from "circomlibjs";
 
 function Setup() {
   const [api, contextHolder] = notification.useNotification();
@@ -113,12 +113,16 @@ function Setup() {
         "0x" + Buffer.from(password).toString("hex")
       ).toString();
 
-      const proof = await getUserPoseidonHash([passwordNumber, "0", address]);
-      if (!proof?.inputs) return;
+      const poseidon = await buildPoseidon();
+      const hash = poseidon.F.toString(
+        poseidon([passwordNumber, "0", address])
+      );
+      const userPoseidonHash = BigNumber.from(
+        hash
+      ).toHexString() as `0x${string}`;
 
-      const [, userPoseidonHash] = proof.inputs;
       setUserHash({
-        recklesslySetUnpreparedArgs: [userPoseidonHash as `0x${string}`],
+        recklesslySetUnpreparedArgs: [userPoseidonHash],
       });
     } catch (err) {
       console.error(err);

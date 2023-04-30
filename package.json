@@ -16,6 +16,7 @@
     "@ant-design/icons": "^5.0.1",
     "antd": "^5.4.4",
     "buffer": "^6.0.3",
+    "circomlibjs": "^0.1.7",
     "connectkit": "^1.2.3",
     "ethers": "^5.7.2",
     "react": "^18.2.0",
