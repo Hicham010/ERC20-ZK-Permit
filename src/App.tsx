@@ -35,8 +35,7 @@ function App() {
     watch: true,
     enabled: isConnected,
   });
-  const setupIsComplete =
-    balance && !balance.isZero() && userHash && userHash !== constants.HashZero;
+  const setupIsComplete = balance?.gt("0") && userHash !== constants.HashZero;
 
   const next = () => {
     setCurrent(current + 1);
@@ -109,7 +108,7 @@ function App() {
             {current > 0 && (
               <Button
                 style={{ margin: "0 8px" }}
-                onClick={() => prev()}
+                onClick={prev}
               >
                 Previous
               </Button>
@@ -117,10 +116,10 @@ function App() {
             {current < steps.length - 1 && (
               <Button
                 disabled={
-                  !setupIsComplete || current === 0 ? false : !compoundHash
+                  !setupIsComplete || (current === 0 ? false : !compoundHash)
                 }
                 type="primary"
-                onClick={() => next()}
+                onClick={next}
               >
                 Next
               </Button>
