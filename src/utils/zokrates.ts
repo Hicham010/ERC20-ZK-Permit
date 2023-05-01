@@ -15,22 +15,19 @@ export async function getPermitZKProof(
   ]
 ) {
   const zokratesProvider = await initialize();
-  const art = PermitZKArtifact;
+  const { program, provingKey, verificationKey } = PermitZKArtifact;
 
-  const program = Uint8Array.from(Buffer.from(art.program, "hex"));
-  const output = zokratesProvider.computeWitness(program, input);
-  const provingKey = Uint8Array.from(Buffer.from(art.provingKey, "hex"));
+  const programHex = Uint8Array.from(Buffer.from(program, "hex"));
+  const output = zokratesProvider.computeWitness(programHex, input);
+  const provingKeyHex = Uint8Array.from(Buffer.from(provingKey, "hex"));
 
   const zokratesProof = zokratesProvider.generateProof(
-    program,
+    programHex,
     output.witness,
-    provingKey
+    provingKeyHex
   );
 
-  const isVerified = zokratesProvider.verify(
-    art.verificationKey,
-    zokratesProof
-  );
+  const isVerified = zokratesProvider.verify(verificationKey, zokratesProof);
   console.log(`The proof is verified: ${isVerified}`);
 
   return { ...zokratesProof, isVerified };
