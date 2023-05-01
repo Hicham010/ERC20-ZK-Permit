@@ -21,7 +21,6 @@ function Setup() {
   const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
-    args: [address],
   } as const;
 
   const {
@@ -33,13 +32,16 @@ function Setup() {
       {
         ...ERC20ZkPermitContract,
         functionName: "balanceOf",
+        args: [address],
       },
       {
         ...ERC20ZkPermitContract,
         functionName: "userHash",
+        args: [address],
       },
     ],
     enabled: isConnected,
+    staleTime: 4_000,
   });
 
   const openNotificationWithIcon = (title: string, transactionHash: string) => {
@@ -57,8 +59,7 @@ function Setup() {
   };
 
   const { config } = usePrepareContractWrite({
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
+    ...ERC20ZkPermitContract,
     functionName: "mint",
     args: [address, BigNumber.from("1000")],
     enabled: isConnected,
@@ -79,8 +80,7 @@ function Setup() {
     isLoading: isSettingUserHash,
     write: setUserHash,
   } = useContractWrite({
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
+    ...ERC20ZkPermitContract,
     functionName: "setUserHash",
     mode: "recklesslyUnprepared",
     onSuccess: ({ hash }) => {
@@ -103,7 +103,6 @@ function Setup() {
   });
 
   const handleUserHash = async () => {
-    if (!address) return;
     if (!setUserHash) return;
 
     setLoading(true);
@@ -111,10 +110,11 @@ function Setup() {
       const passwordNumber = BigNumber.from(
         "0x" + Buffer.from(password).toString("hex")
       ).toString();
+      const passwordSalt = "0";
 
       const poseidon = await buildPoseidon();
       const hash = poseidon.F.toString(
-        poseidon([passwordNumber, "0", address])
+        poseidon([passwordNumber, passwordSalt, address])
       );
       const userPoseidonHash = BigNumber.from(
         hash

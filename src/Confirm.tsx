@@ -36,6 +36,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
       },
     ],
     enabled: isConnected,
+    staleTime: 4_000,
   });
 
   const {
@@ -43,8 +44,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
     isError,
     isLoading: isPreparingZKTransfer,
   } = usePrepareContractWrite({
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
+    ...ERC20ZkPermitContract,
     functionName: "zkTransferFrom",
     args: [
       proof,

@@ -9,8 +9,8 @@ import { ERC20ZKPPermitAddress } from "./constants";
 
 import "./App.css";
 
-const Permit = lazy(() => import("./Permit"));
 const Setup = lazy(() => import("./Setup"));
+const Permit = lazy(() => import("./Permit"));
 const Confirm = lazy(() => import("./Confirm"));
 
 function App() {

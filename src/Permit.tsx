@@ -43,9 +43,6 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
     setFormValues(values);
     setLoading(true);
     try {
-      if (!zknNonce) return;
-      if (!onChainUserHash) return;
-
       const passwordNumber = BigNumber.from(
         "0x" + Buffer.from(values.password).toString("hex")
       ).toString();
@@ -71,7 +68,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
       const poseidon = await buildPoseidon();
 
       const userHash = poseidon.F.toString(
-        poseidon([passwordNumber, "0", address])
+        poseidon([passwordNumber, passwordSaltNumber, address])
       );
       const transferHash = poseidon.F.toString(
         poseidon([receiverAddressNumber, valueNumber, deadline, nonce])
@@ -80,13 +77,8 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
         poseidon([userHash, transferHash])
       );
 
-      const userHashHex = BigNumber.from(
-        userHash
-      ).toHexString() as `0x${string}`;
-
-      const compoundHashHex = BigNumber.from(
-        compoundHash
-      ).toHexString() as `0x${string}`;
+      const userHashHex = BigNumber.from(userHash).toHexString();
+      const compoundHashHex = BigNumber.from(compoundHash).toHexString();
 
       console.log([...input, userHash, compoundHash]);
 
@@ -168,8 +160,8 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
       >
         <InputNumber
           style={{ width: "100%" }}
-          max={balance?.div(`${1e18}`).toNumber()}
-          addonAfter={`/ ${balance?.div(`${1e18}`).toString()}`}
+          max={balance.div(`${1e18}`).toNumber()}
+          addonAfter={`/ ${balance.div(`${1e18}`).toString()}`}
           controls={false}
         />
       </Form.Item>
