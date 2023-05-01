@@ -1,4 +1,4 @@
-import { Button, Input, Spin, notification } from "antd";
+import { Button, Input, notification } from "antd";
 import { useState } from "react";
 import {
   useAccount,
@@ -27,7 +27,6 @@ function Setup() {
   const {
     data: [balance, onChainUserHash] = [constants.Zero, constants.HashZero],
     refetch: refetchBalanceAndHash,
-    isLoading: isLoadingUser,
     isRefetching: isRefetchingBalanceAndHash,
   } = useContractReads({
     contracts: [
