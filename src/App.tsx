@@ -1,4 +1,4 @@
-import { useAccount, useContractRead } from "wagmi";
+import { useAccount, useContractReads } from "wagmi";
 import "./App.css";
 import Permit from "./Permit";
 import { ConnectKitButton } from "connectkit";
@@ -18,24 +18,27 @@ function App() {
   const [compoundHash, setCompoundHash] = useState();
   const [formValues, setFormValues] = useState();
 
-  const { address = "0x0", isConnected } = useAccount();
-  const { data: balance } = useContractRead({
+  const { address = constants.AddressZero, isConnected } = useAccount();
+
+  const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
-    functionName: "balanceOf",
     args: [address],
-    watch: true,
+  } as const;
+
+  const {
+    data: [onChainUserHash, balance] = [constants.HashZero, constants.Zero],
+  } = useContractReads({
+    contracts: [
+      { ...ERC20ZkPermitContract, functionName: "userHash" },
+      { ...ERC20ZkPermitContract, functionName: "balanceOf" },
+    ],
     enabled: isConnected,
-  });
-  const { data: userHash } = useContractRead({
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
-    functionName: "userHash",
-    args: [address],
     watch: true,
-    enabled: isConnected,
   });
-  const setupIsComplete = balance?.gt("0") && userHash !== constants.HashZero;
+
+  const setupIsComplete =
+    balance.gt("0") && onChainUserHash !== constants.HashZero;
 
   const next = () => {
     setCurrent(current + 1);

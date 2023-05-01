@@ -8,7 +8,7 @@ import {
   useWaitForTransaction,
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { BigNumber } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress } from "./constants";
 import { buildPoseidon } from "circomlibjs";
 
@@ -16,28 +16,28 @@ function Setup() {
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
-  const { address = "0x0", isConnected } = useAccount();
+  const { address = constants.AddressZero, isConnected } = useAccount();
 
   const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
-  };
+    args: [address],
+  } as const;
 
   const {
-    data: balanceAndUserHash,
+    data: [balance, onChainUserHash] = [constants.Zero, constants.HashZero],
     refetch: refetchBalanceAndHash,
+    isLoading: isLoadingUser,
     isRefetching: isRefetchingBalanceAndHash,
   } = useContractReads({
     contracts: [
       {
         ...ERC20ZkPermitContract,
         functionName: "balanceOf",
-        args: [address],
       },
       {
         ...ERC20ZkPermitContract,
         functionName: "userHash",
-        args: [address],
       },
     ],
     enabled: isConnected,
@@ -131,7 +131,7 @@ function Setup() {
     }
   };
 
-  if (!balanceAndUserHash) return <Spin spinning={true} />;
+  if (isLoadingUser) return <Spin spinning={true} />;
 
   return (
     <>
@@ -142,7 +142,7 @@ function Setup() {
             isWaitingOnTxUserHash || isRefetchingBalanceAndHash ? 0.25 : 1,
         }}
       >
-        Current User Hash: {balanceAndUserHash[1].toString()}
+        Current User Hash: {onChainUserHash}
       </p>
       <div style={{ display: "flex" }}>
         <Input
@@ -172,10 +172,7 @@ function Setup() {
             opacity: isWaitingOnTxMint || isRefetchingBalanceAndHash ? 0.25 : 1,
           }}
         >
-          Current Balance:{" "}
-          {balanceAndUserHash[0].eq(0)
-            ? 0
-            : balanceAndUserHash[0].div("1000000000000000000").toString()}
+          Current Balance: {balance.div(`${1e18}`).toString()}
         </p>
         <Button
           loading={isMintingTokens}

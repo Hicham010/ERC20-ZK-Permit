@@ -7,19 +7,20 @@ import {
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Button, Descriptions, Spin, message, notification } from "antd";
-import { BigNumber } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 
 export default function Confirm({ proof, compoundHash, formValues }) {
   const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
-  };
+  } as const;
 
   const { isConnected } = useAccount();
   const {
-    data: balance,
+    data: [ownerBalance, receiverBalance] = [constants.Zero, constants.Zero],
     refetch: refetchBalance,
+    isLoading: isLoadingBalances,
     isRefetching: isRefetchingBalance,
   } = useContractReads({
     contracts: [
@@ -122,14 +123,10 @@ export default function Confirm({ proof, compoundHash, formValues }) {
               margin: "5px",
             }}
           >
-            {balance ? (
-              balance[0].eq(0) ? (
-                0
-              ) : (
-                balance[0].div("1000000000000000000").toString()
-              )
-            ) : (
+            {isLoadingBalances ? (
               <Spin />
+            ) : (
+              ownerBalance.div(`${1e18}`).toString()
             )}
           </Descriptions.Item>
           <Descriptions.Item label="Receiver Address">
@@ -142,14 +139,10 @@ export default function Confirm({ proof, compoundHash, formValues }) {
               margin: "5px",
             }}
           >
-            {balance ? (
-              balance[1].eq(0) ? (
-                0
-              ) : (
-                balance[1].div("1000000000000000000").toString()
-              )
-            ) : (
+            {isLoadingBalances ? (
               <Spin />
+            ) : (
+              receiverBalance.div(`${1e18}`).toString()
             )}
           </Descriptions.Item>
         </Descriptions>

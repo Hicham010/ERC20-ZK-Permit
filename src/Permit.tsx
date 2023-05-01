@@ -1,40 +1,36 @@
 import { useState } from "react";
 import { Button, Form, Input, InputNumber, message } from "antd";
 import { getPermitZKProof } from "./utils/zokrates";
-import { BigNumber, utils } from "ethers";
+import { BigNumber, constants, utils } from "ethers";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { Address, useAccount, useContractRead } from "wagmi";
+import { Address, useAccount, useContractReads } from "wagmi";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 import { buildPoseidon } from "circomlibjs";
 
 function Permit({ setProof, setCompoundHash, setFormValues }) {
   const [loading, setLoading] = useState<boolean>(false);
-  const { address = "0x0", isConnected } = useAccount();
-  const { data: zknNonce } = useContractRead({
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
-    functionName: "zkNonce",
-    args: [address],
-    watch: true,
-    enabled: isConnected,
-  });
+  const { address = constants.AddressZero, isConnected } = useAccount();
 
-  const { data: onChainUserHash } = useContractRead({
+  const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
-    functionName: "userHash",
     args: [address],
-    watch: true,
-    enabled: isConnected,
-  });
+  } as const;
 
-  const { data: balance } = useContractRead({
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
-    functionName: "balanceOf",
-    args: [address],
-    watch: true,
+  const {
+    data: [zknNonce, onChainUserHash, balance] = [
+      constants.Zero,
+      constants.HashZero,
+      constants.Zero,
+    ],
+  } = useContractReads({
+    contracts: [
+      { ...ERC20ZkPermitContract, functionName: "zkNonce" },
+      { ...ERC20ZkPermitContract, functionName: "userHash" },
+      { ...ERC20ZkPermitContract, functionName: "balanceOf" },
+    ],
     enabled: isConnected,
+    watch: true,
   });
 
   async function onFinish(values: {
@@ -48,6 +44,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
     setLoading(true);
     try {
       if (!zknNonce) return;
+      if (!onChainUserHash) return;
 
       const passwordNumber = BigNumber.from(
         "0x" + Buffer.from(values.password).toString("hex")
@@ -101,7 +98,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
 
       const { proof, isVerified } = await getPermitZKProof([
         ...input,
-        userHash,
+        onChainUserHash,
         compoundHash,
       ]);
 
@@ -115,7 +112,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
       setProof(proof);
     } catch (err) {
       console.error(err);
-      message.error("Something went wrong generating the proof" + err);
+      message.error("Something went wrong generating the proof");
     } finally {
       setLoading(false);
     }
@@ -135,20 +132,6 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
         <Input />
       </Form.Item>
       <Form.Item
-        hasFeedback
-        rules={[
-          { required: true, len: 42 },
-          () => ({
-            validator(_, ownerAddress) {
-              if (utils.isAddress(ownerAddress)) {
-                return Promise.resolve();
-              }
-              return Promise.reject(
-                new Error("The owner address is not a valid Ethereum address")
-              );
-            },
-          }),
-        ]}
         label="Owner Address"
         name="owner"
         initialValue={address}
@@ -186,12 +169,8 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
       >
         <InputNumber
           style={{ width: "100%" }}
-          max={
-            balance?.eq(0) ? 0 : balance?.div("1000000000000000000").toNumber()
-          }
-          addonAfter={`/ ${
-            balance?.eq(0) ? 0 : balance?.div("1000000000000000000").toString()
-          }`}
+          max={balance?.div(`${1e18}`).toNumber()}
+          addonAfter={`/ ${balance?.div(`${1e18}`).toString()}`}
           controls={false}
         />
       </Form.Item>
