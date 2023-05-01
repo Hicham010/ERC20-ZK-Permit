@@ -6,7 +6,6 @@ import { WagmiConfig, createClient } from "wagmi";
 import { sepolia } from "@wagmi/core/chains";
 import { ConnectKitProvider, getDefaultClient } from "connectkit";
 
-// const alchemyId = process.env.ALCHEMY_ID;
 const client = createClient(
   getDefaultClient({
     autoConnect: true,

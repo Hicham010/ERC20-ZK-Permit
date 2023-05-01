@@ -144,7 +144,6 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
           { required: true, len: 42 },
           () => ({
             validator(_, receiverAddress) {
-              // console.log(receiverAddress);
               if (utils.isAddress(receiverAddress)) {
                 return Promise.resolve();
               }

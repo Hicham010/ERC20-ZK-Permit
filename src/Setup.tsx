@@ -131,8 +131,6 @@ function Setup() {
     }
   };
 
-  if (isLoadingUser) return <Spin spinning={true} />;
-
   return (
     <>
       {contextHolder}
