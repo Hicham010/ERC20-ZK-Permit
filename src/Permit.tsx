@@ -30,7 +30,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
       { ...ERC20ZkPermitContract, functionName: "balanceOf" },
     ],
     enabled: isConnected,
-    watch: true,
+    staleTime: 4_000,
   });
 
   async function onFinish(values: {

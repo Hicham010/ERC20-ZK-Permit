@@ -1,15 +1,17 @@
+import { Suspense, lazy, useState } from "react";
 import { useAccount, useContractReads } from "wagmi";
-import "./App.css";
-import Permit from "./Permit";
 import { ConnectKitButton } from "connectkit";
-import { useState } from "react";
 import { Button, Spin, Steps } from "antd";
 import { LockOutlined } from "@ant-design/icons";
-import Setup from "./Setup";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { constants } from "ethers";
-import Confirm from "./Confirm";
 import { ERC20ZKPPermitAddress } from "./constants";
+
+import "./App.css";
+
+const Permit = lazy(() => import("./Permit"));
+const Setup = lazy(() => import("./Setup"));
+const Confirm = lazy(() => import("./Confirm"));
 
 function App() {
   const [current, setCurrent] = useState(0);
@@ -34,7 +36,7 @@ function App() {
       { ...ERC20ZkPermitContract, functionName: "balanceOf" },
     ],
     enabled: isConnected,
-    watch: true,
+    staleTime: 4_000,
   });
 
   const setupIsComplete =
@@ -100,7 +102,9 @@ function App() {
             current={current}
             items={items}
           />
-          <div>{steps[current].content}</div>
+          <Suspense fallback={<Spin />}>
+            <div>{steps[current].content}</div>
+          </Suspense>
           <div
             style={{
               display: "flex",
