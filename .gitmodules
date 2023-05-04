@@ -1,0 +1,3 @@
+[submodule "zk-permit-contracts"]
+	path = zk-permit-contracts
+	url = https://github.com/Hicham010/ERC20-Zk-Permit-Contracts
