@@ -109,22 +109,15 @@ function App() {
             style={{
               display: "flex",
               marginTop: 24,
-              justifyContent: "space-between",
             }}
           >
-            {current > 0 && (
-              <Button
-                style={{ margin: "0 8px" }}
-                onClick={prev}
-              >
-                Previous
-              </Button>
-            )}
+            {current > 0 && <Button onClick={prev}>Previous</Button>}
             {current < steps.length - 1 && (
               <Button
                 disabled={
                   !setupIsComplete || (current === 0 ? false : !compoundHash)
                 }
+                style={{ marginLeft: "auto" }}
                 type="primary"
                 onClick={next}
               >
