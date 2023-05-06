@@ -85,7 +85,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
       if (onChainUserHash === userHashHex) {
         message.success("The supplied password is correct");
       } else {
-        message.error("The supplied password is wrong");
+        message.error("The supplied password is incorrect");
       }
 
       const { proof, isVerified } = await getPermitZKProof([
