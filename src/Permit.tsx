@@ -7,6 +7,7 @@ import { Address, useAccount, useContractReads } from "wagmi";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 import { buildPoseidon } from "circomlibjs";
+import { hexZeroPad } from "ethers/lib/utils.js";
 
 interface PermitComp {
   setProof: React.Dispatch<React.SetStateAction<undefined | Groth16Proof>>;
@@ -91,7 +92,10 @@ function Permit({
       );
 
       const userHashHex = BigNumber.from(userHash).toHexString();
-      const compoundHashHex = BigNumber.from(compoundHash).toHexString();
+      const compoundHashHex = hexZeroPad(
+        BigNumber.from(compoundHash).toHexString(),
+        32
+      ) as HashType;
 
       console.log([...input, userHash, compoundHash]);
 
