@@ -11,6 +11,7 @@ import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress } from "./constants";
 import { buildPoseidon } from "circomlibjs";
+import { hexZeroPad } from "ethers/lib/utils.js";
 
 function Setup() {
   const [api, contextHolder] = notification.useNotification();
@@ -116,9 +117,10 @@ function Setup() {
       const hash = poseidon.F.toString(
         poseidon([passwordNumber, passwordSalt, address])
       );
-      const userPoseidonHash = BigNumber.from(
-        hash
-      ).toHexString() as `0x${string}`;
+      const userPoseidonHash = hexZeroPad(
+        BigNumber.from(hash).toHexString(),
+        32
+      ) as `0x${string}`;
 
       setUserHash({
         recklesslySetUnpreparedArgs: [userPoseidonHash],
