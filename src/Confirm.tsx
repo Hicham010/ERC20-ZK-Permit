@@ -9,12 +9,29 @@ import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Button, Descriptions, Spin, message, notification } from "antd";
 import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
+import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 
-export default function Confirm({ proof, compoundHash, formValues }) {
+interface PermitCompValues {
+  proof: Groth16Proof;
+  compoundHash: HashType;
+  permitFormInputs: PermitFormInputs;
+}
+
+export default function Confirm({
+  proof,
+  compoundHash,
+  permitFormInputs,
+}: PermitCompValues) {
   const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
   } as const;
+
+  console.log({
+    proof,
+    compoundHash,
+    permitFormInputs,
+  });
 
   const { isConnected } = useAccount();
   const {
@@ -27,12 +44,12 @@ export default function Confirm({ proof, compoundHash, formValues }) {
       {
         ...ERC20ZkPermitContract,
         functionName: "balanceOf",
-        args: [formValues.owner],
+        args: [permitFormInputs.owner],
       },
       {
         ...ERC20ZkPermitContract,
         functionName: "balanceOf",
-        args: [formValues.receiver],
+        args: [permitFormInputs.receiver],
       },
     ],
     enabled: isConnected,
@@ -49,9 +66,11 @@ export default function Confirm({ proof, compoundHash, formValues }) {
     args: [
       proof,
       {
-        owner: formValues.owner,
-        receiver: formValues.receiver,
-        value: BigNumber.from(`${BigInt(formValues.value) * BigInt(1e18)}`),
+        owner: permitFormInputs.owner,
+        receiver: permitFormInputs.receiver,
+        value: BigNumber.from(
+          `${BigInt(permitFormInputs.value) * BigInt(1e18)}`
+        ),
         deadline: BigNumber.from(`${MAX_FIELD_VALUE - 2n}`),
       },
       compoundHash,
@@ -89,9 +108,9 @@ export default function Confirm({ proof, compoundHash, formValues }) {
       message: "Transfer Pending",
       description: (
         <>
-          <p>{formValues.value} tokens transferring</p>
-          <p>From: {formValues.owner}</p>
-          <p>to: {formValues.receiver}</p>
+          <p>{permitFormInputs.value} tokens transferring</p>
+          <p>From: {permitFormInputs.owner}</p>
+          <p>to: {permitFormInputs.receiver}</p>
           <a
             href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
             target="_blank"
@@ -114,7 +133,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
           style={{ width: "75%" }}
         >
           <Descriptions.Item label="Owner Address">
-            {formValues.owner}
+            {permitFormInputs.owner}
           </Descriptions.Item>
           <Descriptions.Item
             label="Owner Balance"
@@ -130,7 +149,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
             )}
           </Descriptions.Item>
           <Descriptions.Item label="Receiver Address">
-            {formValues.receiver}
+            {permitFormInputs.receiver}
           </Descriptions.Item>
           <Descriptions.Item
             label="Receiver Balance"
@@ -153,7 +172,7 @@ export default function Confirm({ proof, compoundHash, formValues }) {
         onClick={write}
         type="primary"
       >
-        Transfer {formValues.value} Token(s)
+        Transfer {permitFormInputs.value} Token(s)
       </Button>
       <br />
       <p>*If you like you can now switch to another wallet to use the permit</p>

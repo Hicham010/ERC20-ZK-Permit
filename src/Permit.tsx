@@ -5,9 +5,22 @@ import { BigNumber, constants, utils } from "ethers";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Address, useAccount, useContractReads } from "wagmi";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
+import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 import { buildPoseidon } from "circomlibjs";
 
-function Permit({ setProof, setCompoundHash, setFormValues }) {
+interface PermitComp {
+  setProof: React.Dispatch<React.SetStateAction<undefined | Groth16Proof>>;
+  setCompoundHash: React.Dispatch<React.SetStateAction<undefined | HashType>>;
+  setPermitFormInputs: React.Dispatch<
+    React.SetStateAction<undefined | PermitFormInputs>
+  >;
+}
+
+function Permit({
+  setProof,
+  setCompoundHash,
+  setPermitFormInputs,
+}: PermitComp) {
   const [loading, setLoading] = useState<boolean>(false);
   const { address = constants.AddressZero, isConnected } = useAccount();
 
@@ -40,7 +53,7 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
     value: number;
   }) {
     console.log("Supplied values: ", values);
-    setFormValues(values);
+    setPermitFormInputs(values);
     setLoading(true);
     try {
       const passwordNumber = BigNumber.from(
@@ -88,11 +101,11 @@ function Permit({ setProof, setCompoundHash, setFormValues }) {
         message.error("The supplied password is incorrect");
       }
 
-      const { proof, isVerified } = await getPermitZKProof([
+      const { proof, isVerified } = (await getPermitZKProof([
         ...input,
         onChainUserHash,
         compoundHash,
-      ]);
+      ])) as { proof: Groth16Proof; isVerified: boolean };
 
       if (isVerified) {
         message.success("The proof is valid");

@@ -6,6 +6,7 @@ import { LockOutlined } from "@ant-design/icons";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { constants } from "ethers";
 import { ERC20ZKPPermitAddress } from "./constants";
+import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 
 import "./App.css";
 
@@ -16,9 +17,11 @@ const Confirm = lazy(() => import("./Confirm"));
 function App() {
   const [current, setCurrent] = useState(0);
 
-  const [proof, setProof] = useState();
-  const [compoundHash, setCompoundHash] = useState();
-  const [formValues, setFormValues] = useState();
+  const [proof, setProof] = useState<Groth16Proof>();
+  const [compoundHash, setCompoundHash] = useState<HashType>();
+  const [permitFormInputs, setPermitFormInputs] = useState<PermitFormInputs>();
+
+  const isConfirmReady = proof && compoundHash && permitFormInputs;
 
   const { address = constants.AddressZero, isConnected } = useAccount();
 
@@ -61,18 +64,20 @@ function App() {
         <Permit
           setProof={setProof}
           setCompoundHash={setCompoundHash}
-          setFormValues={setFormValues}
+          setPermitFormInputs={setPermitFormInputs}
         />
       ),
     },
     {
       title: "Confirm",
-      content: (
+      content: isConfirmReady ? (
         <Confirm
           proof={proof}
           compoundHash={compoundHash}
-          formValues={formValues}
+          permitFormInputs={permitFormInputs}
         />
+      ) : (
+        <>Error</>
       ),
     },
   ];
