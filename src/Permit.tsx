@@ -6,6 +6,8 @@ import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Address, useAccount, useContractReads } from "wagmi";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import { buildPoseidon } from "circomlibjs";
 import { hexZeroPad } from "ethers/lib/utils.js";
 
@@ -31,13 +33,7 @@ function Permit({
     args: [address],
   } as const;
 
-  const {
-    data: [zknNonce, onChainUserHash, balance] = [
-      constants.Zero,
-      constants.HashZero,
-      constants.Zero,
-    ],
-  } = useContractReads({
+  const { data } = useContractReads({
     contracts: [
       { ...ERC20ZkPermitContract, functionName: "zkNonce" },
       { ...ERC20ZkPermitContract, functionName: "userHash" },
@@ -46,6 +42,12 @@ function Permit({
     enabled: isConnected,
     staleTime: 4_000,
   });
+
+  const [zknNonce, onChainUserHash, balance] = (data as [
+    BigNumber,
+    `0x${string}`,
+    BigNumber
+  ]) ?? [constants.Zero, constants.HashZero, constants.Zero];
 
   async function onFinish(values: {
     password: string;

@@ -1,10 +1,10 @@
 import { Suspense, lazy, useState } from "react";
 import { useAccount, useContractReads } from "wagmi";
-import { ConnectKitButton } from "connectkit";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button, Spin, Steps } from "antd";
 import { LockOutlined } from "@ant-design/icons";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { constants } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 
@@ -31,9 +31,7 @@ function App() {
     args: [address],
   } as const;
 
-  const {
-    data: [onChainUserHash, balance] = [constants.HashZero, constants.Zero],
-  } = useContractReads({
+  const { data } = useContractReads({
     contracts: [
       { ...ERC20ZkPermitContract, functionName: "userHash" },
       { ...ERC20ZkPermitContract, functionName: "balanceOf" },
@@ -41,6 +39,11 @@ function App() {
     enabled: isConnected,
     staleTime: 4_000,
   });
+
+  const [onChainUserHash, balance] = (data as [`0x${string}`, BigNumber]) ?? [
+    constants.HashZero,
+    constants.Zero,
+  ];
 
   const setupIsComplete =
     balance.gt("0") && onChainUserHash !== constants.HashZero;
@@ -92,7 +95,10 @@ function App() {
           marginBottom: "30px",
         }}
       >
-        <ConnectKitButton theme="soft" />
+        <ConnectButton
+          showBalance={true}
+          accountStatus={"full"}
+        />
       </div>
 
       <>

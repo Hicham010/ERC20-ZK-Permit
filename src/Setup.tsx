@@ -10,14 +10,18 @@ import {
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress } from "./constants";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import { buildPoseidon } from "circomlibjs";
 import { hexZeroPad } from "ethers/lib/utils.js";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 function Setup() {
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
   const { address = constants.AddressZero, isConnected } = useAccount();
+  const addTransaction = useAddRecentTransaction();
 
   const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
@@ -25,7 +29,7 @@ function Setup() {
   } as const;
 
   const {
-    data: [balance, onChainUserHash] = [constants.Zero, constants.HashZero],
+    data,
     refetch: refetchBalanceAndHash,
     isRefetching: isRefetchingBalanceAndHash,
   } = useContractReads({
@@ -44,6 +48,11 @@ function Setup() {
     enabled: isConnected,
     staleTime: 4_000,
   });
+
+  const [balance, onChainUserHash] = (data as [BigNumber, `0x${string}`]) ?? [
+    constants.Zero,
+    constants.HashZero,
+  ];
 
   const openNotificationWithIcon = (title: string, transactionHash: string) => {
     api["success"]({
@@ -73,6 +82,7 @@ function Setup() {
     ...config,
     onSuccess: ({ hash }) => {
       openNotificationWithIcon("Mint Successful", hash);
+      addTransaction({ hash, description: "Minted Tokens" });
     },
   });
 
@@ -86,6 +96,7 @@ function Setup() {
     mode: "recklesslyUnprepared",
     onSuccess: ({ hash }) => {
       openNotificationWithIcon("Setting User Hash Successful", hash);
+      addTransaction({ hash, description: "Setted new userhash" });
     },
   });
 

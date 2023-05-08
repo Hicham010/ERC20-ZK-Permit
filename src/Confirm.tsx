@@ -10,6 +10,7 @@ import { Button, Descriptions, Spin, message, notification } from "antd";
 import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 interface PermitCompValues {
   proof: Groth16Proof;
@@ -33,9 +34,11 @@ export default function Confirm({
     permitFormInputs,
   });
 
+  const addTransaction = useAddRecentTransaction();
+
   const { isConnected } = useAccount();
   const {
-    data: [ownerBalance, receiverBalance] = [constants.Zero, constants.Zero],
+    data,
     refetch: refetchBalance,
     isLoading: isLoadingBalances,
     isRefetching: isRefetchingBalance,
@@ -55,6 +58,11 @@ export default function Confirm({
     enabled: isConnected,
     staleTime: 4_000,
   });
+
+  const [ownerBalance, receiverBalance] = (data as [BigNumber, BigNumber]) ?? [
+    constants.Zero,
+    constants.Zero,
+  ];
 
   const {
     config,
@@ -84,15 +92,20 @@ export default function Confirm({
       }
     },
   });
-  const { data, isLoading, write } = useContractWrite({
+  const {
+    data: dataWrite,
+    isLoading,
+    write,
+  } = useContractWrite({
     ...config,
     onSuccess: ({ hash }) => {
       openNotificationWithIcon(hash);
+      addTransaction({ hash, description: "Transferred tokens" });
     },
   });
 
   const { isLoading: isWaitingOnTx } = useWaitForTransaction({
-    hash: data?.hash,
+    hash: dataWrite?.hash,
     onSuccess() {
       message.success("The transfer is complete");
       refetchBalance();
