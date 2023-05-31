@@ -40,7 +40,7 @@ function Permit({
       { ...ERC20ZkPermitContract, functionName: "balanceOf" },
     ],
     enabled: isConnected,
-    staleTime: 4_000,
+    watch: true,
   });
 
   const [zknNonce, onChainUserHash, balance] = (data as [

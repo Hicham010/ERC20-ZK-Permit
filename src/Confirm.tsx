@@ -56,7 +56,7 @@ export default function Confirm({
       },
     ],
     enabled: isConnected,
-    staleTime: 4_000,
+    watch: true
   });
 
   const [ownerBalance, receiverBalance] = (data as [BigNumber, BigNumber]) ?? [
