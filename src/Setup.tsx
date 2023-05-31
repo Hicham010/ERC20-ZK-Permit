@@ -46,7 +46,7 @@ function Setup() {
       },
     ],
     enabled: isConnected,
-    staleTime: 4_000,
+    watch: true,
   });
 
   const [balance, onChainUserHash] = (data as [BigNumber, `0x${string}`]) ?? [

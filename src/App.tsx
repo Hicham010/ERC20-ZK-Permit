@@ -37,7 +37,7 @@ function App() {
       { ...ERC20ZkPermitContract, functionName: "balanceOf" },
     ],
     enabled: isConnected,
-    staleTime: 4_000,
+    watch: true,
   });
 
   const [onChainUserHash, balance] = (data as [`0x${string}`, BigNumber]) ?? [
