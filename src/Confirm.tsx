@@ -7,7 +7,6 @@ import {
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Button, Descriptions, Spin, message, notification } from "antd";
-import { BigNumber, constants } from "ethers";
 import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
@@ -56,13 +55,13 @@ export default function Confirm({
       },
     ],
     enabled: isConnected,
-    watch: true
+    watch: true,
   });
 
-  const [ownerBalance, receiverBalance] = (data as [BigNumber, BigNumber]) ?? [
-    constants.Zero,
-    constants.Zero,
-  ];
+  let [ownerBalance, receiverBalance] = [0n, 0n];
+  if (data && Array.isArray(data) && data[0]?.result && data[1]?.result) {
+    [ownerBalance, receiverBalance] = [data[0].result, data[1].result];
+  }
 
   const {
     config,
@@ -76,10 +75,8 @@ export default function Confirm({
       {
         owner: permitFormInputs.owner,
         receiver: permitFormInputs.receiver,
-        value: BigNumber.from(
-          `${BigInt(permitFormInputs.value) * BigInt(1e18)}`
-        ),
-        deadline: BigNumber.from(`${MAX_FIELD_VALUE - 2n}`),
+        value: BigInt(permitFormInputs.value) * BigInt(1e18),
+        deadline: BigInt(MAX_FIELD_VALUE) - 2n,
       },
       compoundHash,
     ],
@@ -158,7 +155,7 @@ export default function Confirm({
             {isLoadingBalances ? (
               <Spin />
             ) : (
-              ownerBalance.div(`${1e18}`).toString()
+              (ownerBalance / BigInt(1e18)).toString()
             )}
           </Descriptions.Item>
           <Descriptions.Item label="Receiver Address">
@@ -174,7 +171,7 @@ export default function Confirm({
             {isLoadingBalances ? (
               <Spin />
             ) : (
-              receiverBalance.div(`${1e18}`).toString()
+              (receiverBalance / BigInt(1e18)).toString()
             )}
           </Descriptions.Item>
         </Descriptions>

@@ -4,8 +4,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button, Spin, Steps } from "antd";
 import { LockOutlined } from "@ant-design/icons";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { BigNumber, constants } from "ethers";
-import { ERC20ZKPPermitAddress } from "./constants";
+import { ERC20ZKPPermitAddress, ZERO_ADDRESS, ZERO_HASH } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 
 import "./App.css";
@@ -23,8 +22,7 @@ function App() {
 
   const isConfirmReady = proof && compoundHash && permitFormInputs;
 
-  const { address = constants.AddressZero, isConnected } = useAccount();
-
+  const { address = ZERO_ADDRESS, isConnected } = useAccount();
   const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
     abi: ERC20ZKArtifact.abi,
@@ -40,13 +38,12 @@ function App() {
     watch: true,
   });
 
-  const [onChainUserHash, balance] = (data as [`0x${string}`, BigNumber]) ?? [
-    constants.HashZero,
-    constants.Zero,
-  ];
+  let [onChainUserHash, balance] = [ZERO_HASH, 0n];
+  if (data && Array.isArray(data) && data[0]?.result && data[1]?.result) {
+    [onChainUserHash, balance] = [data[0].result, data[1].result];
+  }
 
-  const setupIsComplete =
-    balance.gt("0") && onChainUserHash !== constants.HashZero;
+  const setupIsComplete = balance > 0n && onChainUserHash !== ZERO_HASH;
 
   const next = () => {
     setCurrent(current + 1);

@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { Button, Form, Input, InputNumber, message } from "antd";
 import { getPermitZKProof } from "./utils/zokrates";
-import { BigNumber, constants, utils } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Address, useAccount, useContractReads } from "wagmi";
-import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
+import {
+  ERC20ZKPPermitAddress,
+  MAX_FIELD_VALUE,
+  ZERO_ADDRESS,
+  ZERO_HASH,
+} from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -25,7 +30,7 @@ function Permit({
   setPermitFormInputs,
 }: PermitComp) {
   const [loading, setLoading] = useState<boolean>(false);
-  const { address = constants.AddressZero, isConnected } = useAccount();
+  const { address = ZERO_ADDRESS, isConnected } = useAccount();
 
   const ERC20ZkPermitContract = {
     address: ERC20ZKPPermitAddress,
@@ -43,11 +48,20 @@ function Permit({
     watch: true,
   });
 
-  const [zknNonce, onChainUserHash, balance] = (data as [
-    BigNumber,
-    `0x${string}`,
-    BigNumber
-  ]) ?? [constants.Zero, constants.HashZero, constants.Zero];
+  let [zknNonce, onChainUserHash, balance] = [0n, ZERO_HASH, 0n];
+  if (
+    data &&
+    Array.isArray(data) &&
+    data[0]?.result &&
+    data[1]?.result &&
+    data[2]?.result
+  ) {
+    [zknNonce, onChainUserHash, balance] = [
+      data[0].result,
+      data[1].result,
+      data[2].result,
+    ];
+  }
 
   async function onFinish(values: {
     password: string;
@@ -179,8 +193,8 @@ function Permit({
       >
         <InputNumber
           style={{ width: "100%" }}
-          max={balance.div(`${1e18}`).toNumber()}
-          addonAfter={`/ ${balance.div(`${1e18}`).toString()}`}
+          max={parseInt((balance / BigInt(1e18)).toString())}
+          addonAfter={`/ ${(balance / BigInt(1e18)).toString()}`}
           controls={false}
         />
       </Form.Item>

@@ -8,8 +8,8 @@ import {
   useWaitForTransaction,
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { BigNumber, constants } from "ethers";
-import { ERC20ZKPPermitAddress } from "./constants";
+import { BigNumber } from "ethers";
+import { ERC20ZKPPermitAddress, ZERO_ADDRESS, ZERO_HASH } from "./constants";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { buildPoseidon } from "circomlibjs";
@@ -20,7 +20,7 @@ function Setup() {
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
-  const { address = constants.AddressZero, isConnected } = useAccount();
+  const { address = ZERO_ADDRESS, isConnected } = useAccount();
   const addTransaction = useAddRecentTransaction();
 
   const ERC20ZkPermitContract = {
@@ -49,10 +49,10 @@ function Setup() {
     watch: true,
   });
 
-  const [balance, onChainUserHash] = (data as [BigNumber, `0x${string}`]) ?? [
-    constants.Zero,
-    constants.HashZero,
-  ];
+  let [balance, onChainUserHash] = [0n, ZERO_HASH];
+  if (data && Array.isArray(data) && data[0]?.result && data[1]?.result) {
+    [balance, onChainUserHash] = [data[0]?.result, data[1]?.result];
+  }
 
   const openNotificationWithIcon = (title: string, transactionHash: string) => {
     api["success"]({
@@ -71,7 +71,7 @@ function Setup() {
   const { config } = usePrepareContractWrite({
     ...ERC20ZkPermitContract,
     functionName: "mint",
-    args: [address, BigNumber.from("1000")],
+    args: [address, 1000n],
     enabled: isConnected,
   });
   const {
@@ -93,7 +93,6 @@ function Setup() {
   } = useContractWrite({
     ...ERC20ZkPermitContract,
     functionName: "setUserHash",
-    mode: "recklesslyUnprepared",
     onSuccess: ({ hash }) => {
       openNotificationWithIcon("Setting User Hash Successful", hash);
       addTransaction({ hash, description: "Setted new userhash" });
@@ -134,7 +133,7 @@ function Setup() {
       ) as `0x${string}`;
 
       setUserHash({
-        recklesslySetUnpreparedArgs: [userPoseidonHash],
+        args: [userPoseidonHash],
       });
     } catch (err) {
       console.error(err);
@@ -182,7 +181,7 @@ function Setup() {
             opacity: isWaitingOnTxMint || isRefetchingBalanceAndHash ? 0.25 : 1,
           }}
         >
-          Current Balance: {balance.div(`${1e18}`).toString()}
+          Current Balance: {(balance / BigInt(1e18)).toString()}
         </p>
         <Button
           loading={isMintingTokens}
