@@ -13,7 +13,7 @@ import { ERC20ZKPPermitAddress, ZERO_ADDRESS, ZERO_HASH } from "./constants";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { buildPoseidon } from "circomlibjs";
-import { hexZeroPad } from "ethers/lib/utils.js";
+import { pad as hexZeroPad, toHex } from "viem";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 function Setup() {
@@ -118,9 +118,7 @@ function Setup() {
 
     setLoading(true);
     try {
-      const passwordNumber = BigNumber.from(
-        "0x" + Buffer.from(password).toString("hex")
-      ).toString();
+      const passwordNumber = BigNumber.from(toHex(password)).toString();
       const passwordSalt = "0";
 
       const poseidon = await buildPoseidon();
@@ -128,9 +126,11 @@ function Setup() {
         poseidon([passwordNumber, passwordSalt, address])
       );
       const userPoseidonHash = hexZeroPad(
-        BigNumber.from(hash).toHexString(),
-        32
-      ) as `0x${string}`;
+        BigNumber.from(hash).toHexString() as `0x${string}`,
+        {
+          size: 32,
+        }
+      );
 
       setUserHash({
         args: [userPoseidonHash],

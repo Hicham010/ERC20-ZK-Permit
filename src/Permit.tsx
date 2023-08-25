@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button, Form, Input, InputNumber, message } from "antd";
 import { getPermitZKProof } from "./utils/zokrates";
-import { BigNumber, utils } from "ethers";
+import { BigNumber } from "ethers";
+import { isAddress } from "viem";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Address, useAccount, useContractReads } from "wagmi";
 import {
@@ -14,7 +15,7 @@ import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { buildPoseidon } from "circomlibjs";
-import { hexZeroPad } from "ethers/lib/utils.js";
+import { pad as hexZeroPad } from "viem";
 
 interface PermitComp {
   setProof: React.Dispatch<React.SetStateAction<undefined | Groth16Proof>>;
@@ -109,9 +110,9 @@ function Permit({
 
       const userHashHex = BigNumber.from(userHash).toHexString();
       const compoundHashHex = hexZeroPad(
-        BigNumber.from(compoundHash).toHexString(),
-        32
-      ) as HashType;
+        BigNumber.from(compoundHash).toHexString() as `0x${string}`,
+        { size: 32 }
+      );
 
       console.log([...input, userHash, compoundHash]);
 
@@ -169,7 +170,7 @@ function Permit({
           { required: true, len: 42 },
           () => ({
             validator(_, receiverAddress) {
-              if (utils.isAddress(receiverAddress)) {
+              if (isAddress(receiverAddress)) {
                 return Promise.resolve();
               }
               return Promise.reject(
