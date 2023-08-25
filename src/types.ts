@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { Address } from "wagmi";
 
 export interface PermitFormInputs {
@@ -10,16 +9,16 @@ export interface PermitFormInputs {
 
 export type Groth16Proof = {
   a: {
-    X: BigNumber;
-    Y: BigNumber;
+    X: bigint;
+    Y: bigint;
   };
   b: {
-    X: [BigNumber, BigNumber];
-    Y: [BigNumber, BigNumber];
+    X: [bigint, bigint];
+    Y: [bigint, bigint];
   };
   c: {
-    X: BigNumber;
-    Y: BigNumber;
+    X: bigint;
+    Y: bigint;
   };
 };
 
