@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button, Form, Input, InputNumber, message } from "antd";
 import { getPermitZKProof } from "./utils/zokrates";
-import { BigNumber } from "ethers";
 import { isAddress } from "viem";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
 import { Address, useAccount, useContractReads } from "wagmi";
@@ -15,17 +14,17 @@ import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { buildPoseidon } from "circomlibjs";
-import { pad as hexZeroPad } from "viem";
+import { pad as hexZeroPad, toHex } from "viem";
 
-interface PermitComp {
-  setProof: React.Dispatch<React.SetStateAction<undefined | Groth16Proof>>;
-  setCompoundHash: React.Dispatch<React.SetStateAction<undefined | HashType>>;
+type PermitComp = {
+  setProof: React.Dispatch<React.SetStateAction<Groth16Proof | undefined>>;
+  setCompoundHash: React.Dispatch<React.SetStateAction<HashType | undefined>>;
   setPermitFormInputs: React.Dispatch<
     React.SetStateAction<undefined | PermitFormInputs>
   >;
-}
+};
 
-function Permit({
+export default function Permit({
   setProof,
   setCompoundHash,
   setPermitFormInputs,
@@ -49,7 +48,11 @@ function Permit({
     watch: true,
   });
 
-  let [zknNonce, onChainUserHash, balance] = [0n, ZERO_HASH, 0n];
+  let [zknNonce, onChainUserHash, balance]: [bigint, `0x${string}`, bigint] = [
+    0n,
+    ZERO_HASH,
+    0n,
+  ];
   if (
     data &&
     Array.isArray(data) &&
@@ -74,17 +77,15 @@ function Permit({
     setPermitFormInputs(values);
     setLoading(true);
     try {
-      const passwordNumber = BigNumber.from(
-        "0x" + Buffer.from(values.password).toString("hex")
-      ).toString();
+      const passwordNumber = BigInt(toHex(values.password)).toString();
       const passwordSaltNumber = "0";
-      const ownerAddressNumber = BigNumber.from(values.owner).toString();
-      const receiverAddressNumber = BigNumber.from(values.receiver).toString();
+      const ownerAddressNumber = BigInt(values.owner).toString();
+      const receiverAddressNumber = BigInt(values.receiver).toString();
       const valueNumber = `${BigInt(values.value) * BigInt(1e18)}`;
       const deadline = `${MAX_FIELD_VALUE - 2n}`;
       const nonce = zknNonce.toString();
 
-      const input: [string, string, string, string, string, string, string] = [
+      const input = [
         passwordNumber,
         passwordSaltNumber,
         ownerAddressNumber,
@@ -92,29 +93,27 @@ function Permit({
         valueNumber,
         deadline,
         nonce,
-      ];
-
-      console.log("Initial inputs: ", input);
+      ] as const;
 
       const poseidon = await buildPoseidon();
 
-      const userHash = poseidon.F.toString(
+      const userHash: string = poseidon.F.toString(
         poseidon([passwordNumber, passwordSaltNumber, address])
       );
-      const transferHash = poseidon.F.toString(
+      const transferHash: string = poseidon.F.toString(
         poseidon([receiverAddressNumber, valueNumber, deadline, nonce])
       );
-      const compoundHash = poseidon.F.toString(
+      const compoundHash: string = poseidon.F.toString(
         poseidon([userHash, transferHash])
       );
 
-      const userHashHex = BigNumber.from(userHash).toHexString();
+      const userHashHex = `0x${BigInt(userHash).toString(16)}`;
       const compoundHashHex = hexZeroPad(
-        BigNumber.from(compoundHash).toHexString() as `0x${string}`,
+        `0x${BigInt(compoundHash).toString(16)}`,
         { size: 32 }
       );
 
-      console.log([...input, userHash, compoundHash]);
+      console.log({ input, userHash, compoundHash });
 
       if (onChainUserHash === userHashHex) {
         message.success("The supplied password is correct");
@@ -138,7 +137,11 @@ function Permit({
       setProof(proof);
     } catch (err) {
       console.error(err);
-      message.error("Something went wrong generating the proof");
+      if (err instanceof Error) {
+        message.error(
+          "Something went wrong generating the proof: " + err.message
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -211,5 +214,3 @@ function Permit({
     </Form>
   );
 }
-
-export default Permit;

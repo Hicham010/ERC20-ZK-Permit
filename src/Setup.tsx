@@ -1,4 +1,4 @@
-import { Button, Input, notification } from "antd";
+import { Button, Input, message, notification } from "antd";
 import { useState } from "react";
 import {
   useAccount,
@@ -8,7 +8,6 @@ import {
   useWaitForTransaction,
 } from "wagmi";
 import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { BigNumber } from "ethers";
 import { ERC20ZKPPermitAddress, ZERO_ADDRESS, ZERO_HASH } from "./constants";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -16,7 +15,7 @@ import { buildPoseidon } from "circomlibjs";
 import { pad as hexZeroPad, toHex } from "viem";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
-function Setup() {
+export default function Setup() {
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
@@ -95,7 +94,7 @@ function Setup() {
     functionName: "setUserHash",
     onSuccess: ({ hash }) => {
       openNotificationWithIcon("Setting User Hash Successful", hash);
-      addTransaction({ hash, description: "Setted new userhash" });
+      addTransaction({ hash, description: "New user hash set" });
     },
   });
 
@@ -118,25 +117,27 @@ function Setup() {
 
     setLoading(true);
     try {
-      const passwordNumber = BigNumber.from(toHex(password)).toString();
+      const passwordNumber = BigInt(toHex(password)).toString();
       const passwordSalt = "0";
 
       const poseidon = await buildPoseidon();
       const hash = poseidon.F.toString(
         poseidon([passwordNumber, passwordSalt, address])
       );
-      const userPoseidonHash = hexZeroPad(
-        BigNumber.from(hash).toHexString() as `0x${string}`,
-        {
-          size: 32,
-        }
-      );
+      const userPoseidonHash = hexZeroPad(`0x${BigInt(hash).toString(16)}`, {
+        size: 32,
+      });
 
       setUserHash({
         args: [userPoseidonHash],
       });
     } catch (err) {
       console.error(err);
+      if (err instanceof Error) {
+        message.error(
+          "Something went wrong setting the user hash: " + err.message
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -194,5 +195,3 @@ function Setup() {
     </>
   );
 }
-
-export default Setup;

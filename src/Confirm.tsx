@@ -11,11 +11,11 @@ import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
-interface PermitCompValues {
+type PermitCompValues = {
   proof: Groth16Proof;
   compoundHash: HashType;
   permitFormInputs: PermitFormInputs;
-}
+};
 
 export default function Confirm({
   proof,

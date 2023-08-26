@@ -1,11 +1,11 @@
 import { Address } from "wagmi";
 
-export interface PermitFormInputs {
+export type PermitFormInputs = {
   password: string;
   owner: Address;
   receiver: Address;
   value: number;
-}
+};
 
 export type Groth16Proof = {
   a: {

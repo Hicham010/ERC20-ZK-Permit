@@ -13,7 +13,7 @@ const Setup = lazy(() => import("./Setup"));
 const Permit = lazy(() => import("./Permit"));
 const Confirm = lazy(() => import("./Confirm"));
 
-function App() {
+export default function App() {
   const [current, setCurrent] = useState(0);
 
   const [proof, setProof] = useState<Groth16Proof>();
@@ -45,13 +45,8 @@ function App() {
 
   const setupIsComplete = balance > 0n && onChainUserHash !== ZERO_HASH;
 
-  const next = () => {
-    setCurrent(current + 1);
-  };
-
-  const prev = () => {
-    setCurrent(current - 1);
-  };
+  const next = () => setCurrent((prev) => prev + 1);
+  const prev = () => setCurrent((prev) => prev - 1);
 
   const steps = [
     {
@@ -80,7 +75,7 @@ function App() {
         <>Error</>
       ),
     },
-  ];
+  ] as const;
   const items = steps.map((item) => ({ key: item.title, title: item.title }));
 
   return (
@@ -111,7 +106,7 @@ function App() {
             items={items}
           />
           <Suspense fallback={<Spin />}>
-            <div>{steps[current].content}</div>
+            <div>{steps[current]?.content ?? "Error: non-existent page"}</div>
           </Suspense>
           <div
             style={{
@@ -138,5 +133,3 @@ function App() {
     </>
   );
 }
-
-export default App;
