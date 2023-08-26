@@ -17,10 +17,10 @@ import { buildPoseidon } from "circomlibjs";
 import { pad as hexZeroPad, toHex } from "viem";
 
 type PermitComp = {
-  setProof: React.Dispatch<React.SetStateAction<Groth16Proof | undefined>>;
-  setCompoundHash: React.Dispatch<React.SetStateAction<HashType | undefined>>;
+  setProof: React.Dispatch<React.SetStateAction<Groth16Proof | null>>;
+  setCompoundHash: React.Dispatch<React.SetStateAction<HashType | null>>;
   setPermitFormInputs: React.Dispatch<
-    React.SetStateAction<undefined | PermitFormInputs>
+    React.SetStateAction<PermitFormInputs | null>
   >;
 };
 
@@ -142,6 +142,8 @@ export default function Permit({
           "Something went wrong generating the proof: " + err.message
         );
       }
+      setCompoundHash(null);
+      setProof(null);
     } finally {
       setLoading(false);
     }

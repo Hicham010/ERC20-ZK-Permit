@@ -76,7 +76,7 @@ export default function Confirm({
         owner: permitFormInputs.owner,
         receiver: permitFormInputs.receiver,
         value: BigInt(permitFormInputs.value) * BigInt(1e18),
-        deadline: BigInt(MAX_FIELD_VALUE) - 2n,
+        deadline: MAX_FIELD_VALUE - 2n,
       },
       compoundHash,
     ],
@@ -92,6 +92,7 @@ export default function Confirm({
   const {
     data: dataWrite,
     isLoading,
+    isSuccess,
     write,
   } = useContractWrite({
     ...config,
@@ -133,7 +134,7 @@ export default function Confirm({
   };
 
   return (
-    <div>
+    <>
       {contextHolder}
       <div style={{ display: "flex", justifyContent: "center" }}>
         <Descriptions
@@ -182,10 +183,22 @@ export default function Confirm({
         onClick={write}
         type="primary"
       >
-        Transfer {permitFormInputs.value} Token(s)
+        Transfer {permitFormInputs.value} token(s)
       </Button>
       <br />
       <p>*If you like you can now switch to another wallet to use the permit</p>
-    </div>
+      {isSuccess ? (
+        <p>
+          The{" "}
+          <a
+            href={`https://sepolia.etherscan.io/tx/${dataWrite?.hash}`}
+            target="_blank"
+          >
+            transaction
+          </a>{" "}
+          is succesfully send 🎉🎉🎉
+        </p>
+      ) : null}
+    </>
   );
 }

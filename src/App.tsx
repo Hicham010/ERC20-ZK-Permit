@@ -11,14 +11,15 @@ import "./App.css";
 
 const Setup = lazy(() => import("./Setup"));
 const Permit = lazy(() => import("./Permit"));
-const Confirm = lazy(() => import("./Confirm"));
+const Confirm = lazy(() => import("./Transfer"));
 
 export default function App() {
   const [current, setCurrent] = useState(0);
 
-  const [proof, setProof] = useState<Groth16Proof>();
-  const [compoundHash, setCompoundHash] = useState<HashType>();
-  const [permitFormInputs, setPermitFormInputs] = useState<PermitFormInputs>();
+  const [proof, setProof] = useState<Groth16Proof | null>(null);
+  const [compoundHash, setCompoundHash] = useState<HashType | null>(null);
+  const [permitFormInputs, setPermitFormInputs] =
+    useState<PermitFormInputs | null>(null);
 
   const isConfirmReady = proof && compoundHash && permitFormInputs;
 
@@ -50,10 +51,12 @@ export default function App() {
 
   const steps = [
     {
+      key: 0,
       title: "Setup",
       content: <Setup />,
     },
     {
+      key: 1,
       title: "Permit",
       content: (
         <Permit
@@ -64,7 +67,8 @@ export default function App() {
       ),
     },
     {
-      title: "Confirm",
+      key: 2,
+      title: "Transfer",
       content: isConfirmReady ? (
         <Confirm
           proof={proof}
@@ -76,7 +80,7 @@ export default function App() {
       ),
     },
   ] as const;
-  const items = steps.map((item) => ({ key: item.title, title: item.title }));
+  const items = steps.map(({ key, title }) => ({ key, title }));
 
   return (
     <>
@@ -93,43 +97,41 @@ export default function App() {
         />
       </div>
 
-      <>
-        <Spin
-          spinning={!isConnected}
-          indicator={<LockOutlined />}
-          tip="Connect a Wallet"
-          size="large"
+      <Spin
+        spinning={!isConnected}
+        indicator={<LockOutlined />}
+        tip="Connect a Wallet"
+        size="large"
+      >
+        <Steps
+          style={{ marginBottom: "50px" }}
+          current={current}
+          items={items}
+        />
+        <Suspense fallback={<Spin />}>
+          <div>{steps[current]?.content ?? "Error: non-existent page"}</div>
+        </Suspense>
+        <div
+          style={{
+            display: "flex",
+            marginTop: 24,
+          }}
         >
-          <Steps
-            style={{ marginBottom: "50px" }}
-            current={current}
-            items={items}
-          />
-          <Suspense fallback={<Spin />}>
-            <div>{steps[current]?.content ?? "Error: non-existent page"}</div>
-          </Suspense>
-          <div
-            style={{
-              display: "flex",
-              marginTop: 24,
-            }}
-          >
-            {current > 0 && <Button onClick={prev}>Previous</Button>}
-            {current < steps.length - 1 && (
-              <Button
-                disabled={
-                  !setupIsComplete || (current === 0 ? false : !compoundHash)
-                }
-                style={{ marginLeft: "auto" }}
-                type="primary"
-                onClick={next}
-              >
-                Next
-              </Button>
-            )}
-          </div>
-        </Spin>
-      </>
+          {current > 0 && <Button onClick={prev}>Previous</Button>}
+          {current < steps.length - 1 && (
+            <Button
+              disabled={
+                !setupIsComplete || (current === 0 ? false : !compoundHash)
+              }
+              style={{ marginLeft: "auto" }}
+              type="primary"
+              onClick={next}
+            >
+              Next
+            </Button>
+          )}
+        </div>
+      </Spin>
     </>
   );
 }
