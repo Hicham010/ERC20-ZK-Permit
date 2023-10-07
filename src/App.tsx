@@ -1,20 +1,19 @@
-import { Suspense, lazy, useState } from "react";
-import { useAccount, useContractReads } from "wagmi";
+import { LockOutlined } from "@ant-design/icons";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button, Spin, Steps } from "antd";
-import { LockOutlined } from "@ant-design/icons";
-import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { ERC20ZKPPermitAddress, ZERO_ADDRESS, ZERO_HASH } from "./constants";
-import { Groth16Proof, HashType, PermitFormInputs } from "./types";
-
+import { Suspense, lazy, useState } from "react";
+import { zeroAddress } from "viem";
+import { useAccount, useContractReads } from "wagmi";
 import "./App.css";
+import { ERC20ZkPermitContract, ZERO_HASH } from "./constants";
+import { Groth16Proof, HashType, PermitFormInputs } from "./types";
 
 const Setup = lazy(() => import("./Setup"));
 const Permit = lazy(() => import("./Permit"));
 const Confirm = lazy(() => import("./Transfer"));
 
 export default function App() {
-  const [current, setCurrent] = useState(0);
+  const [current, setCurrent] = useState<0 | 1 | 2>(0);
 
   const [proof, setProof] = useState<Groth16Proof | null>(null);
   const [compoundHash, setCompoundHash] = useState<HashType | null>(null);
@@ -23,17 +22,16 @@ export default function App() {
 
   const isConfirmReady = proof && compoundHash && permitFormInputs;
 
-  const { address = ZERO_ADDRESS, isConnected } = useAccount();
-  const ERC20ZkPermitContract = {
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
+  const { address = zeroAddress, isConnected } = useAccount();
+  const ERC20ZkPermitContractWithArgs = {
+    ...ERC20ZkPermitContract,
     args: [address],
   } as const;
 
   const { data } = useContractReads({
     contracts: [
-      { ...ERC20ZkPermitContract, functionName: "userHash" },
-      { ...ERC20ZkPermitContract, functionName: "balanceOf" },
+      { ...ERC20ZkPermitContractWithArgs, functionName: "userHash" },
+      { ...ERC20ZkPermitContractWithArgs, functionName: "balanceOf" },
     ],
     enabled: isConnected,
     watch: true,
@@ -46,8 +44,19 @@ export default function App() {
 
   const setupIsComplete = balance > 0n && onChainUserHash !== ZERO_HASH;
 
-  const next = () => setCurrent((prev) => prev + 1);
-  const prev = () => setCurrent((prev) => prev - 1);
+  const next = () =>
+    setCurrent((prev) => {
+      if (prev === 0) return 1;
+      if (prev === 1) return 2;
+      return prev;
+    });
+
+  const prev = () =>
+    setCurrent((prev) => {
+      if (prev === 2) return 1;
+      if (prev === 1) return 0;
+      return prev;
+    });
 
   const steps = [
     {
@@ -109,7 +118,7 @@ export default function App() {
           items={items}
         />
         <Suspense fallback={<Spin />}>
-          <div>{steps[current]?.content ?? "Error: non-existent page"}</div>
+          <>{steps[current].content}</>
         </Suspense>
         <div
           style={{
