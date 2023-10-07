@@ -146,7 +146,7 @@ export default function Setup() {
         Current User Hash: {onChainUserHash}
       </p>
       <div style={{ display: "flex" }}>
-        <Input
+        <Input.Password
           maxLength={30}
           minLength={8}
           onChange={(e) => setPassword(e.target.value)}

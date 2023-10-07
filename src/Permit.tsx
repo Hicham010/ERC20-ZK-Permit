@@ -141,7 +141,6 @@ export default function Permit({
       setLoading(false);
     }
   }
-
   return (
     <Form
       layout="vertical"
@@ -153,7 +152,7 @@ export default function Permit({
         label="Password"
         name="password"
       >
-        <Input />
+        <Input.Password />
       </Form.Item>
       <Form.Item
         label="Owner Address"
