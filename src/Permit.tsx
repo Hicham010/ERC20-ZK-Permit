@@ -1,20 +1,10 @@
-import { useState } from "react";
 import { Button, Form, Input, InputNumber, message } from "antd";
-import { getPermitZKProof } from "./utils/zokrates";
-import { isAddress } from "viem";
-import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
+import { useState } from "react";
+import { pad as hexZeroPad, isAddress, toHex, zeroAddress } from "viem";
 import { Address, useAccount, useContractReads } from "wagmi";
-import {
-  ERC20ZKPPermitAddress,
-  MAX_FIELD_VALUE,
-  ZERO_ADDRESS,
-  ZERO_HASH,
-} from "./constants";
+import { ERC20ZkPermitContract, MAX_FIELD_VALUE, ZERO_HASH } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { buildPoseidon } from "circomlibjs";
-import { pad as hexZeroPad, toHex } from "viem";
+import { getPermitZKProof } from "./utils/zokrates";
 
 type PermitComp = {
   setProof: React.Dispatch<React.SetStateAction<Groth16Proof | null>>;
@@ -30,19 +20,18 @@ export default function Permit({
   setPermitFormInputs,
 }: PermitComp) {
   const [loading, setLoading] = useState<boolean>(false);
-  const { address = ZERO_ADDRESS, isConnected } = useAccount();
+  const { address = zeroAddress, isConnected } = useAccount();
 
-  const ERC20ZkPermitContract = {
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
+  const ERC20ZkPermitContractWithArgs = {
+    ...ERC20ZkPermitContract,
     args: [address],
   } as const;
 
   const { data } = useContractReads({
     contracts: [
-      { ...ERC20ZkPermitContract, functionName: "zkNonce" },
-      { ...ERC20ZkPermitContract, functionName: "userHash" },
-      { ...ERC20ZkPermitContract, functionName: "balanceOf" },
+      { ...ERC20ZkPermitContractWithArgs, functionName: "zkNonce" },
+      { ...ERC20ZkPermitContractWithArgs, functionName: "userHash" },
+      { ...ERC20ZkPermitContractWithArgs, functionName: "balanceOf" },
     ],
     enabled: isConnected,
     watch: true,
@@ -95,6 +84,7 @@ export default function Permit({
         nonce,
       ] as const;
 
+      const { buildPoseidon } = await import("circomlibjs");
       const poseidon = await buildPoseidon();
 
       const userHash: string = poseidon.F.toString(
@@ -107,14 +97,17 @@ export default function Permit({
         poseidon([userHash, transferHash])
       );
 
-      const userHashHex = `0x${BigInt(userHash).toString(16)}`;
+      const userHashHex = hexZeroPad(`0x${BigInt(userHash).toString(16)}`, {
+        size: 32,
+      });
       const compoundHashHex = hexZeroPad(
         `0x${BigInt(compoundHash).toString(16)}`,
         { size: 32 }
       );
 
       console.log({ input, userHash, compoundHash });
-
+      // eslint-disable-next-line no-debugger
+      debugger;
       if (onChainUserHash === userHashHex) {
         message.success("The supplied password is correct");
       } else {
@@ -192,7 +185,7 @@ export default function Permit({
         <Input />
       </Form.Item>
       <Form.Item
-        hasFeedback
+        hasFeedback={false}
         rules={[{ required: true }]}
         label="Value"
         name="value"

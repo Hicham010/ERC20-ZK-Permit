@@ -1,3 +1,5 @@
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
+import { Button, Descriptions, Spin, message, notification } from "antd";
 import {
   useAccount,
   useContractReads,
@@ -5,11 +7,8 @@ import {
   usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi";
-import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { Button, Descriptions, Spin, message, notification } from "antd";
-import { ERC20ZKPPermitAddress, MAX_FIELD_VALUE } from "./constants";
+import { ERC20ZkPermitContract, MAX_FIELD_VALUE } from "./constants";
 import { Groth16Proof, HashType, PermitFormInputs } from "./types";
-import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 type PermitCompValues = {
   proof: Groth16Proof;
@@ -22,11 +21,6 @@ export default function Confirm({
   compoundHash,
   permitFormInputs,
 }: PermitCompValues) {
-  const ERC20ZkPermitContract = {
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
-  } as const;
-
   console.log({
     proof,
     compoundHash,

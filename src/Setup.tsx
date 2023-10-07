@@ -1,5 +1,7 @@
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { Button, Input, message, notification } from "antd";
 import { useState } from "react";
+import { pad as hexZeroPad, toHex, zeroAddress } from "viem";
 import {
   useAccount,
   useContractReads,
@@ -7,25 +9,14 @@ import {
   usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi";
-import { ERC20ZKArtifact } from "./Artifacts/ERC20ZK";
-import { ERC20ZKPPermitAddress, ZERO_ADDRESS, ZERO_HASH } from "./constants";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { buildPoseidon } from "circomlibjs";
-import { pad as hexZeroPad, toHex } from "viem";
-import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
+import { ERC20ZkPermitContract, ZERO_HASH } from "./constants";
 
 export default function Setup() {
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
-  const { address = ZERO_ADDRESS, isConnected } = useAccount();
+  const { address = zeroAddress, isConnected } = useAccount();
   const addTransaction = useAddRecentTransaction();
-
-  const ERC20ZkPermitContract = {
-    address: ERC20ZKPPermitAddress,
-    abi: ERC20ZKArtifact.abi,
-  } as const;
 
   const {
     data,
@@ -120,6 +111,7 @@ export default function Setup() {
       const passwordNumber = BigInt(toHex(password)).toString();
       const passwordSalt = "0";
 
+      const { buildPoseidon } = await import("circomlibjs");
       const poseidon = await buildPoseidon();
       const hash = poseidon.F.toString(
         poseidon([passwordNumber, passwordSalt, address])
@@ -138,9 +130,8 @@ export default function Setup() {
           "Something went wrong setting the user hash: " + err.message
         );
       }
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (

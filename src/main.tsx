@@ -1,12 +1,11 @@
+import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
+import "@rainbow-me/rainbowkit/styles.css";
+import { sepolia } from "@wagmi/core/chains";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
-import { sepolia } from "@wagmi/core/chains";
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { publicProvider } from "wagmi/providers/public";
-import "@rainbow-me/rainbowkit/styles.css";
+import App from "./App.tsx";
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [sepolia],
