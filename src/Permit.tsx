@@ -3,15 +3,13 @@ import { useState } from "react";
 import { pad as hexZeroPad, isAddress, toHex, zeroAddress } from "viem";
 import { Address, useAccount, useContractReads } from "wagmi";
 import { ERC20ZkPermitContract, MAX_FIELD_VALUE, ZERO_HASH } from "./constants";
-import { Groth16Proof, HashType, PermitFormInputs } from "./types";
+import type { Groth16Proof, HashType, PermitFormInputs } from "./types";
 import { getPermitZKProof } from "./utils/zokrates";
 
 type PermitComp = {
-  setProof: React.Dispatch<React.SetStateAction<Groth16Proof | null>>;
-  setCompoundHash: React.Dispatch<React.SetStateAction<HashType | null>>;
-  setPermitFormInputs: React.Dispatch<
-    React.SetStateAction<PermitFormInputs | null>
-  >;
+  setProof: (proof: Groth16Proof | null) => void;
+  setCompoundHash: (compoundHash: HashType | null) => void;
+  setPermitFormInputs: (permitFormInputs: PermitFormInputs) => void;
 };
 
 export default function Permit({
@@ -19,7 +17,7 @@ export default function Permit({
   setCompoundHash,
   setPermitFormInputs,
 }: PermitComp) {
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const { address = zeroAddress, isConnected } = useAccount();
 
   const ERC20ZkPermitContractWithArgs = {
@@ -37,18 +35,12 @@ export default function Permit({
     watch: true,
   });
 
-  let [zknNonce, onChainUserHash, balance]: [bigint, `0x${string}`, bigint] = [
+  let [zknNonce, onChainUserHash, balance] = [
     0n,
-    ZERO_HASH,
+    ZERO_HASH as `0x${string}`,
     0n,
   ];
-  if (
-    data &&
-    Array.isArray(data) &&
-    data[0]?.result &&
-    data[1]?.result &&
-    data[2]?.result
-  ) {
+  if (data && data[0]?.result && data[1]?.result && data[2]?.result) {
     [zknNonce, onChainUserHash, balance] = [
       data[0].result,
       data[1].result,
@@ -106,19 +98,18 @@ export default function Permit({
       );
 
       console.log({ input, userHash, compoundHash });
-      // eslint-disable-next-line no-debugger
-      debugger;
+
       if (onChainUserHash === userHashHex) {
         message.success("The supplied password is correct");
       } else {
         message.error("The supplied password is incorrect");
       }
 
-      const { proof, isVerified } = (await getPermitZKProof([
+      const { proof, isVerified } = await getPermitZKProof([
         ...input,
         onChainUserHash,
         compoundHash,
-      ])) as { proof: Groth16Proof; isVerified: boolean };
+      ]);
 
       if (isVerified) {
         message.success("The proof is valid");
@@ -127,7 +118,7 @@ export default function Permit({
       }
 
       setCompoundHash(compoundHashHex);
-      setProof(proof);
+      setProof(proof as Groth16Proof);
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {

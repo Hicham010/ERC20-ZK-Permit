@@ -13,8 +13,8 @@ import { ERC20ZkPermitContract, ZERO_HASH } from "./constants";
 
 export default function Setup() {
   const [api, contextHolder] = notification.useNotification();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState("");
   const { address = zeroAddress, isConnected } = useAccount();
   const addTransaction = useAddRecentTransaction();
 
@@ -39,8 +39,8 @@ export default function Setup() {
     watch: true,
   });
 
-  let [balance, onChainUserHash] = [0n, ZERO_HASH];
-  if (data && Array.isArray(data) && data[0]?.result && data[1]?.result) {
+  let [balance, onChainUserHash] = [0n, ZERO_HASH as `0x${string}`];
+  if (data && data[0]?.result && data[1]?.result) {
     [balance, onChainUserHash] = [data[0]?.result, data[1]?.result];
   }
 

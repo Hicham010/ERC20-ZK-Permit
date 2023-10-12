@@ -6,7 +6,7 @@ import { zeroAddress } from "viem";
 import { useAccount, useContractReads } from "wagmi";
 import "./App.css";
 import { ERC20ZkPermitContract, ZERO_HASH } from "./constants";
-import { Groth16Proof, HashType, PermitFormInputs } from "./types";
+import type { Groth16Proof, HashType, PermitFormInputs } from "./types";
 
 const Setup = lazy(() => import("./Setup"));
 const Permit = lazy(() => import("./Permit"));
@@ -38,7 +38,7 @@ export default function App() {
   });
 
   let [onChainUserHash, balance] = [ZERO_HASH, 0n];
-  if (data && Array.isArray(data) && data[0]?.result && data[1]?.result) {
+  if (data && data[0]?.result && data[1]?.result) {
     [onChainUserHash, balance] = [data[0].result, data[1].result];
   }
 
@@ -117,9 +117,7 @@ export default function App() {
           current={current}
           items={items}
         />
-        <Suspense fallback={<Spin />}>
-          <>{steps[current].content}</>
-        </Suspense>
+        <Suspense fallback={<Spin />}>{steps[current].content}</Suspense>
         <div
           style={{
             display: "flex",

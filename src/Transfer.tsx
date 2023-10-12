@@ -8,7 +8,7 @@ import {
   useWaitForTransaction,
 } from "wagmi";
 import { ERC20ZkPermitContract, MAX_FIELD_VALUE } from "./constants";
-import { Groth16Proof, HashType, PermitFormInputs } from "./types";
+import type { Groth16Proof, HashType, PermitFormInputs } from "./types";
 
 type PermitCompValues = {
   proof: Groth16Proof;
@@ -53,7 +53,7 @@ export default function Confirm({
   });
 
   let [ownerBalance, receiverBalance] = [0n, 0n];
-  if (data && Array.isArray(data) && data[0]?.result && data[1]?.result) {
+  if (data && data[0]?.result && data[1]?.result) {
     [ownerBalance, receiverBalance] = [data[0].result, data[1].result];
   }
 

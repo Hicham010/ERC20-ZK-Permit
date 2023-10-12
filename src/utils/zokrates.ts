@@ -1,5 +1,3 @@
-import { initialize } from "zokrates-js";
-
 export async function getPermitZKProof(
   input: [
     string,
@@ -14,6 +12,7 @@ export async function getPermitZKProof(
   ]
 ) {
   const { PermitZKArtifact } = await import("../Artifacts/PermitZKArtifact");
+  const { initialize } = await import("zokrates-js");
 
   const zokratesProvider = await initialize();
   const { program, provingKey, verificationKey } = PermitZKArtifact;
