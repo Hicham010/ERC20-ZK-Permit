@@ -119,6 +119,7 @@ export default function Confirm({
           <a
             href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
             target="_blank"
+            rel="noopener noreferrer"
           >
             Transaction Link
           </a>
@@ -187,6 +188,7 @@ export default function Confirm({
           <a
             href={`https://sepolia.etherscan.io/tx/${dataWrite?.hash}`}
             target="_blank"
+            rel="noopener noreferrer"
           >
             transaction
           </a>{" "}

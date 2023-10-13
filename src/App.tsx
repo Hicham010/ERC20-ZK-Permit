@@ -20,7 +20,7 @@ export default function App() {
   const [permitFormInputs, setPermitFormInputs] =
     useState<PermitFormInputs | null>(null);
 
-  const isConfirmReady = proof && compoundHash && permitFormInputs;
+  const isConfirmReady = !!proof && !!compoundHash && !!permitFormInputs;
 
   const { address = zeroAddress, isConnected } = useAccount();
   const ERC20ZkPermitContractWithArgs = {

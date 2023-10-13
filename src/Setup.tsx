@@ -1,7 +1,7 @@
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { Button, Input, message, notification } from "antd";
 import { useState } from "react";
-import { pad as hexZeroPad, toHex, zeroAddress } from "viem";
+import { numberToHex, toHex, zeroAddress } from "viem";
 import {
   useAccount,
   useContractReads,
@@ -51,6 +51,7 @@ export default function Setup() {
         <a
           href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
           target="_blank"
+          rel="noopener noreferrer"
         >
           Transaction Link
         </a>
@@ -113,16 +114,12 @@ export default function Setup() {
 
       const { buildPoseidon } = await import("circomlibjs");
       const poseidon = await buildPoseidon();
-      const hash = poseidon.F.toString(
+      const hash: string = poseidon.F.toString(
         poseidon([passwordNumber, passwordSalt, address])
       );
-      const userPoseidonHash = hexZeroPad(`0x${BigInt(hash).toString(16)}`, {
-        size: 32,
-      });
+      const userPoseidonHash = numberToHex(BigInt(hash), { size: 32 });
 
-      setUserHash({
-        args: [userPoseidonHash],
-      });
+      setUserHash({ args: [userPoseidonHash] });
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {

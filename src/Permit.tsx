@@ -1,7 +1,7 @@
 import { Button, Form, Input, InputNumber, message } from "antd";
 import { useState } from "react";
-import { pad as hexZeroPad, isAddress, toHex, zeroAddress } from "viem";
-import { Address, useAccount, useContractReads } from "wagmi";
+import { isAddress, numberToHex, toHex, zeroAddress } from "viem";
+import { useAccount, useContractReads } from "wagmi";
 import { ERC20ZkPermitContract, MAX_FIELD_VALUE, ZERO_HASH } from "./constants";
 import type { Groth16Proof, HashType, PermitFormInputs } from "./types";
 import { getPermitZKProof } from "./utils/zokrates";
@@ -48,32 +48,27 @@ export default function Permit({
     ];
   }
 
-  async function onFinish(values: {
-    password: string;
-    owner: Address;
-    receiver: Address;
-    value: number;
-  }) {
+  async function onFinish(values: PermitFormInputs) {
     console.log("Supplied values: ", values);
     setPermitFormInputs(values);
     setLoading(true);
     try {
-      const passwordNumber = BigInt(toHex(values.password)).toString();
-      const passwordSaltNumber = "0";
-      const ownerAddressNumber = BigInt(values.owner).toString();
-      const receiverAddressNumber = BigInt(values.receiver).toString();
-      const valueNumber = `${BigInt(values.value) * BigInt(1e18)}`;
-      const deadline = `${MAX_FIELD_VALUE - 2n}`;
-      const nonce = zknNonce.toString();
+      const passwordNumber = BigInt(toHex(values.password));
+      const passwordSaltNumber = 0n;
+      const ownerAddressNumber = BigInt(values.owner);
+      const receiverAddressNumber = BigInt(values.receiver);
+      const valueNumber = BigInt(values.value) * BigInt(1e18);
+      const deadline = MAX_FIELD_VALUE - 2n;
+      const nonce = zknNonce;
 
       const input = [
-        passwordNumber,
-        passwordSaltNumber,
-        ownerAddressNumber,
-        receiverAddressNumber,
-        valueNumber,
-        deadline,
-        nonce,
+        passwordNumber.toString(),
+        passwordSaltNumber.toString(),
+        ownerAddressNumber.toString(),
+        receiverAddressNumber.toString(),
+        valueNumber.toString(),
+        deadline.toString(),
+        nonce.toString(),
       ] as const;
 
       const { buildPoseidon } = await import("circomlibjs");
@@ -89,13 +84,8 @@ export default function Permit({
         poseidon([userHash, transferHash])
       );
 
-      const userHashHex = hexZeroPad(`0x${BigInt(userHash).toString(16)}`, {
-        size: 32,
-      });
-      const compoundHashHex = hexZeroPad(
-        `0x${BigInt(compoundHash).toString(16)}`,
-        { size: 32 }
-      );
+      const userHashHex = numberToHex(BigInt(userHash), { size: 32 });
+      const compoundHashHex = numberToHex(BigInt(compoundHash), { size: 32 });
 
       console.log({ input, userHash, compoundHash });
 
@@ -128,9 +118,8 @@ export default function Permit({
       }
       setCompoundHash(null);
       setProof(null);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }
   return (
     <Form
