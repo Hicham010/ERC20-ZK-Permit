@@ -39,7 +39,7 @@ export default function Setup() {
     watch: true,
   });
 
-  let [balance, onChainUserHash] = [0n, ZERO_HASH as `0x${string}`];
+  let [balance, onChainUserHash] = [0n, ZERO_HASH];
   if (data && data[0]?.result && data[1]?.result) {
     [balance, onChainUserHash] = [data[0]?.result, data[1]?.result];
   }

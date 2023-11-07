@@ -2,11 +2,11 @@ import { LockOutlined } from "@ant-design/icons";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button, Spin, Steps } from "antd";
 import { Suspense, lazy, useState } from "react";
-import { zeroAddress } from "viem";
+import { zeroAddress, type Hash } from "viem";
 import { useAccount, useContractReads } from "wagmi";
 import "./App.css";
 import { ERC20ZkPermitContract, ZERO_HASH } from "./constants";
-import type { Groth16Proof, HashType, PermitFormInputs } from "./types";
+import type { Groth16Proof, PermitFormInputs } from "./types";
 
 const Setup = lazy(() => import("./Setup"));
 const Permit = lazy(() => import("./Permit"));
@@ -16,7 +16,7 @@ export default function App() {
   const [current, setCurrent] = useState<0 | 1 | 2>(0);
 
   const [proof, setProof] = useState<Groth16Proof | null>(null);
-  const [compoundHash, setCompoundHash] = useState<HashType | null>(null);
+  const [compoundHash, setCompoundHash] = useState<Hash | null>(null);
   const [permitFormInputs, setPermitFormInputs] =
     useState<PermitFormInputs | null>(null);
 

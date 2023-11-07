@@ -1,14 +1,14 @@
 import { Button, Form, Input, InputNumber, message } from "antd";
 import { useState } from "react";
-import { isAddress, numberToHex, toHex, zeroAddress } from "viem";
+import { isAddress, numberToHex, toHex, zeroAddress, type Hash } from "viem";
 import { useAccount, useContractReads } from "wagmi";
 import { ERC20ZkPermitContract, MAX_FIELD_VALUE, ZERO_HASH } from "./constants";
-import type { Groth16Proof, HashType, PermitFormInputs } from "./types";
-import { getPermitZKProof } from "./utils/zokrates";
+import type { Groth16Proof, PermitFormInputs } from "./types";
+import { getPermitZKProof, type PermitProofInput } from "./utils/zokrates";
 
 type PermitComp = {
   setProof: (proof: Groth16Proof | null) => void;
-  setCompoundHash: (compoundHash: HashType | null) => void;
+  setCompoundHash: (compoundHash: Hash | null) => void;
   setPermitFormInputs: (permitFormInputs: PermitFormInputs) => void;
 };
 
@@ -35,11 +35,7 @@ export default function Permit({
     watch: true,
   });
 
-  let [zknNonce, onChainUserHash, balance] = [
-    0n,
-    ZERO_HASH as `0x${string}`,
-    0n,
-  ];
+  let [zknNonce, onChainUserHash, balance] = [0n, ZERO_HASH, 0n];
   if (data && data[0]?.result && data[1]?.result && data[2]?.result) {
     [zknNonce, onChainUserHash, balance] = [
       data[0].result,
@@ -61,16 +57,6 @@ export default function Permit({
       const deadline = MAX_FIELD_VALUE - 2n;
       const nonce = zknNonce;
 
-      const input = [
-        passwordNumber.toString(),
-        passwordSaltNumber.toString(),
-        ownerAddressNumber.toString(),
-        receiverAddressNumber.toString(),
-        valueNumber.toString(),
-        deadline.toString(),
-        nonce.toString(),
-      ] as const;
-
       const { buildPoseidon } = await import("circomlibjs");
       const poseidon = await buildPoseidon();
 
@@ -87,19 +73,26 @@ export default function Permit({
       const userHashHex = numberToHex(BigInt(userHash), { size: 32 });
       const compoundHashHex = numberToHex(BigInt(compoundHash), { size: 32 });
 
-      console.log({ input, userHash, compoundHash });
-
       if (onChainUserHash === userHashHex) {
         message.success("The supplied password is correct");
       } else {
         message.error("The supplied password is incorrect");
       }
 
-      const { proof, isVerified } = await getPermitZKProof([
-        ...input,
+      const input: PermitProofInput = [
+        passwordNumber.toString(),
+        passwordSaltNumber.toString(),
+        ownerAddressNumber.toString(),
+        receiverAddressNumber.toString(),
+        valueNumber.toString(),
+        deadline.toString(),
+        nonce.toString(),
         onChainUserHash,
         compoundHash,
-      ]);
+      ];
+      console.log("The permit proof inputs are", { input });
+
+      const { proof, isVerified } = await getPermitZKProof(input);
 
       if (isVerified) {
         message.success("The proof is valid");

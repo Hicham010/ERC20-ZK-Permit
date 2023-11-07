@@ -21,5 +21,3 @@ export type Groth16Proof = {
     Y: bigint;
   };
 };
-
-export type HashType = `0x${string}`;

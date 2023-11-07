@@ -25,17 +25,17 @@
     "zokrates-js": "^1.1.8"
   },
   "devDependencies": {
-    "@types/circomlibjs": "^0.1.4",
-    "@types/react": "^18.2.25",
-    "@types/react-dom": "^18.2.11",
-    "@typescript-eslint/eslint-plugin": "^6.7.4",
-    "@typescript-eslint/parser": "^6.7.4",
-    "@vitejs/plugin-react": "^4.1.0",
-    "eslint": "^8.51.0",
+    "@types/circomlibjs": "^0.1.6",
+    "@types/react": "^18.2.36",
+    "@types/react-dom": "^18.2.14",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.1.1",
+    "eslint": "^8.53.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
+    "eslint-plugin-react-refresh": "^0.4.4",
     "gh-pages": "^6.0.0",
     "typescript": "^5.2.2",
-    "vite": "^4.4.11"
+    "vite": "^4.5.0"
   }
 }

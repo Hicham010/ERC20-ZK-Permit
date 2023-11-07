@@ -1,5 +1,6 @@
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { Button, Descriptions, Spin, message, notification } from "antd";
+import type { Hash } from "viem";
 import {
   useAccount,
   useContractReads,
@@ -8,11 +9,11 @@ import {
   useWaitForTransaction,
 } from "wagmi";
 import { ERC20ZkPermitContract, MAX_FIELD_VALUE } from "./constants";
-import type { Groth16Proof, HashType, PermitFormInputs } from "./types";
+import type { Groth16Proof, PermitFormInputs } from "./types";
 
 type PermitCompValues = {
   proof: Groth16Proof;
-  compoundHash: HashType;
+  compoundHash: Hash;
   permitFormInputs: PermitFormInputs;
 };
 
