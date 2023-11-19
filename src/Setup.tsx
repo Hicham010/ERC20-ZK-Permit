@@ -19,7 +19,7 @@ export default function Setup() {
   const addTransaction = useAddRecentTransaction();
 
   const {
-    data,
+    data = [],
     refetch: refetchBalanceAndHash,
     isRefetching: isRefetchingBalanceAndHash,
   } = useContractReads({
@@ -39,10 +39,8 @@ export default function Setup() {
     watch: true,
   });
 
-  let [balance, onChainUserHash] = [0n, ZERO_HASH];
-  if (data && data[0]?.result && data[1]?.result) {
-    [balance, onChainUserHash] = [data[0]?.result, data[1]?.result];
-  }
+  const balance = data[0]?.result ?? 0n;
+  const onChainUserHash = data[1]?.result ?? ZERO_HASH;
 
   const openNotificationWithIcon = (title: string, transactionHash: string) => {
     api["success"]({

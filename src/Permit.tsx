@@ -25,7 +25,7 @@ export default function Permit({
     args: [address],
   } as const;
 
-  const { data } = useContractReads({
+  const { data = [] } = useContractReads({
     contracts: [
       { ...ERC20ZkPermitContractWithArgs, functionName: "zkNonce" },
       { ...ERC20ZkPermitContractWithArgs, functionName: "userHash" },
@@ -35,14 +35,9 @@ export default function Permit({
     watch: true,
   });
 
-  let [zknNonce, onChainUserHash, balance] = [0n, ZERO_HASH, 0n];
-  if (data && data[0]?.result && data[1]?.result && data[2]?.result) {
-    [zknNonce, onChainUserHash, balance] = [
-      data[0].result,
-      data[1].result,
-      data[2].result,
-    ];
-  }
+  const zknNonce = data[0]?.result ?? 0n;
+  const onChainUserHash = data[1]?.result ?? ZERO_HASH;
+  const balance = data[2]?.result ?? 0n;
 
   async function onFinish(values: PermitFormInputs) {
     console.log("Supplied values: ", values);

@@ -28,7 +28,7 @@ export default function App() {
     args: [address],
   } as const;
 
-  const { data } = useContractReads({
+  const { data = [] } = useContractReads({
     contracts: [
       { ...ERC20ZkPermitContractWithArgs, functionName: "userHash" },
       { ...ERC20ZkPermitContractWithArgs, functionName: "balanceOf" },
@@ -37,10 +37,8 @@ export default function App() {
     watch: true,
   });
 
-  let [onChainUserHash, balance] = [ZERO_HASH, 0n];
-  if (data && data[0]?.result && data[1]?.result) {
-    [onChainUserHash, balance] = [data[0].result, data[1].result];
-  }
+  const onChainUserHash = data[0]?.result ?? ZERO_HASH;
+  const balance = data[1]?.result ?? 0n;
 
   const setupIsComplete = balance > 0n && onChainUserHash !== ZERO_HASH;
 

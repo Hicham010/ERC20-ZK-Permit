@@ -32,7 +32,7 @@ export default function Confirm({
 
   const { isConnected } = useAccount();
   const {
-    data,
+    data = [],
     refetch: refetchBalance,
     isLoading: isLoadingBalances,
     isRefetching: isRefetchingBalance,
@@ -53,10 +53,8 @@ export default function Confirm({
     watch: true,
   });
 
-  let [ownerBalance, receiverBalance] = [0n, 0n];
-  if (data && data[0]?.result && data[1]?.result) {
-    [ownerBalance, receiverBalance] = [data[0].result, data[1].result];
-  }
+  const ownerBalance = data[0]?.result ?? 0n;
+  const receiverBalance = data[1]?.result ?? 0n;
 
   const {
     config,
